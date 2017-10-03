@@ -1,4 +1,4 @@
-package open_source;
+package tools;
 
 import java.awt.Color;
 import java.awt.Font;
@@ -9,8 +9,6 @@ import org.dreambot.api.script.AbstractScript;
 import org.dreambot.api.script.Category;
 import org.dreambot.api.script.ScriptManifest;
 import org.dreambot.api.utilities.Timer;
-
-import tools.Misc;
 
 /*
  * @author A q p https://dreambot.org/forums/index.php/user/106843-a-q-p/
