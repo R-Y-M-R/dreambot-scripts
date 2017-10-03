@@ -4,6 +4,9 @@ public enum ChatCommand {
 
 	REPEAT("Echo"),
 	STATUS("Status"),
+	TIME("Time"),
+	FOLLOW("Follow"),
+	
 	;
 	
 	ChatCommand(String command) {

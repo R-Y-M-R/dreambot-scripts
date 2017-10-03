@@ -2,15 +2,34 @@ package tools;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.List;
 
 import org.dreambot.api.Client;
+import org.dreambot.api.script.AbstractScript;
+import org.dreambot.api.wrappers.interactive.Player;
 
 /**
  * This is a essentially a compilation of functions I use across my scripts.
  * @author R-Y-M-R
  *
  */
-public class Misc {
+public abstract class Misc extends AbstractScript {
+	
+	/**
+	 * Uses a for loop to search for a matching player. Can return null.
+	 * @param 	playerName the player who's name we're searching for
+	 * @param 	list a current list of all players
+	 * @return	a Player from list who matches playerName
+	 */
+	public static Player getPlayerByName(String playerName, List<Player> list) {
+		for (int i = 0; i < list.size(); i++) {
+			if (list.get(i).getName().equalsIgnoreCase(playerName)) {
+				return list.get(i);
+			}
+		}
+		printDev("getPlayerByName has returned null!");
+		return null;
+	}
 	
 	/**
 	 * Uses regionMatches to determine if strings match regardless of case
@@ -57,7 +76,6 @@ public class Misc {
 	 * 
 	 */
 	public static String getTimeStamp() { 
-		//new SimpleDateFormat("MMM dd,yyyy HH:mm")
 		return new SimpleDateFormat("MMM-dd-yyyy '@' HH:mm").format(new Date(System.currentTimeMillis()));
 	}
 
