@@ -21,9 +21,6 @@
 # virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
 hs_err_pid*
 
-# Metadata files
-.metadata/
-
 # Compiled java files
 aqp-scripts/bin
 
@@ -31,3 +28,5 @@ aqp-scripts/bin
 *.classpath
 *.project
 aqp-scripts/.settings/
+.metadata/
+.recommenders/
