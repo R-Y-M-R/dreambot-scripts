@@ -30,7 +30,6 @@ public class BotDictator extends AbstractScript implements MessageListener {
 	@Override
 	public void onStart() {
 		Misc.printDev("Script started on "+Misc.getTimeStamp());
-		dictators.add("zezima541");
 	}
 
 	@Override
