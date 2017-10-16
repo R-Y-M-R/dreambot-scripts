@@ -16,7 +16,7 @@ public abstract class Misc {
 	
 	/**
 	 * 
-	 * @param unformatted	the original string in an unparticular format
+	 * @param unformatted	the original string
 	 * @return 	the string with the first letter capitalized, and other letters in lower case
 	 */
 	public static String toCapitalizedLowercase(String unformatted) {
@@ -46,15 +46,19 @@ public abstract class Misc {
 	 * @return
 	 */
 	public static boolean containsIgnoreCase(String str, String searchStr)     {
-	    if(str == null || searchStr == null) return false;
+	    if(str == null || searchStr == null) { 
+	    	return false;
+	    }
 
 	    final int length = searchStr.length();
-	    if (length == 0)
+	    if (length == 0) {
 	        return true;
+	    }
 
 	    for (int i = str.length() - length; i >= 0; i--) {
-	        if (str.regionMatches(true, i, searchStr, 0, length))
+	        if (str.regionMatches(true, i, searchStr, 0, length)) {
 	            return true;
+	        }
 	    }
 	    return false;
 	}
@@ -80,7 +84,7 @@ public abstract class Misc {
 	
 	/**
 	 * This method will determine date & time
-	 * @return	the date & time in format "MMM-dd-yyyy '@' HH:mm"
+	 * @return	the date & time in format "MMM-dd-yyyy '@' HH:mm:ss z"
 	 * 
 	 */
 	public static String getTimeStamp() { 
