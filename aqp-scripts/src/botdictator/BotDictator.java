@@ -14,11 +14,12 @@ import org.dreambot.api.utilities.Timer;
 import org.dreambot.api.wrappers.interactive.Player;
 import org.dreambot.api.wrappers.widgets.message.Message;
 
+import tools.Local;
 import tools.Misc;
 
 /*
  * @author A q p https://dreambot.org/forums/index.php/user/106843-a-q-p/
- * 
+ * @TODO better way of loading dictators, update onStart before publish
  */
 
 @ScriptManifest(name = "Bot Dictator", author = "A q p", description = "[DEV] Bot Dictator", version = 1, category = Category.MISC)
@@ -30,6 +31,7 @@ public class BotDictator extends AbstractScript implements MessageListener {
 	@Override
 	public void onStart() {
 		Misc.printDev("Script started on "+Misc.getTimeStamp());
+		dictators.add(Local.dictator); //sorry github, no more leaking usernames
 	}
 
 	@Override
@@ -53,7 +55,7 @@ public class BotDictator extends AbstractScript implements MessageListener {
 			String[] parts = command.toLowerCase().split(" ");
 			String stripped = command.replace(parts[0], "").trim();
 			String target = null, action = null;
-			
+
 			if(command.contains("\r") || command.contains("\n")) {
 				Misc.printDev("Message contained \"\r\" or \"n\". Handling aborted.");
 				return;

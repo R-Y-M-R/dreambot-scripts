@@ -30,3 +30,4 @@ aqp-scripts/bin
 aqp-scripts/.settings/
 .metadata/
 .recommenders/
+aqp-scripts/src/tools/Local.java
