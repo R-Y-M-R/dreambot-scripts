@@ -5,7 +5,6 @@ import java.util.Date;
 import java.util.List;
 
 import org.dreambot.api.Client;
-import org.dreambot.api.script.AbstractScript;
 import org.dreambot.api.wrappers.interactive.Player;
 
 /**
@@ -13,7 +12,16 @@ import org.dreambot.api.wrappers.interactive.Player;
  * @author R-Y-M-R
  *
  */
-public abstract class Misc extends AbstractScript {
+public abstract class Misc {
+	
+	/**
+	 * 
+	 * @param unformatted	the original string in an unparticular format
+	 * @return 	the string with the first letter capitalized, and other letters in lower case
+	 */
+	public static String toCapitalizedLowercase(String unformatted) {
+		return unformatted.substring(0, 1).toUpperCase() + unformatted.substring(1).toLowerCase();
+	}
 	
 	/**
 	 * Uses a for loop to search for a matching player. Can return null.

@@ -6,7 +6,6 @@ import java.awt.Graphics2D;
 import java.util.ArrayList;
 
 import org.dreambot.api.methods.Calculations;
-import org.dreambot.api.methods.input.Keyboard;
 import org.dreambot.api.script.AbstractScript;
 import org.dreambot.api.script.Category;
 import org.dreambot.api.script.ScriptManifest;
@@ -45,12 +44,73 @@ public class BotDictator extends AbstractScript implements MessageListener {
 
 	@Override
 	public void onExit() {
-
+		Misc.printDev("Script stopped "+Misc.getTimeStamp()+", bye!");
 	}
 	
-	public void handleMessage(Player dictator, String message, Keyboard kb) {
+	private static void chatCommands(Player dictator, ChatCommand chatCommand, String command, BotDictator bd) {
+		try {
+			Misc.printDev("Chatcommand: "+chatCommand.toString()+", full: "+command);
+			String[] parts = command.toLowerCase().split(" ");
+			String stripped = command.replace(parts[0], "").trim();
+			String target = null, action = null;
+			
+			if(command.contains("\r") || command.contains("\n")) {
+				Misc.printDev("Message contained \"\r\" or \"n\". Handling aborted.");
+				return;
+			}
+			if (command.contains("(") && command.contains(")")) {
+				target = command.substring(command.indexOf("(")+1, command.indexOf(")")).trim();
+				Misc.printDev("Target = "+target);
+			}	
+			if (command.contains("{") && command.contains("}")) {
+				action = command.substring(command.indexOf("{")+1, command.indexOf("}")).trim();
+				Misc.printDev("Action = "+action);
+			}
+			
+			switch(chatCommand) {
+			case REPEAT:
+				bd.getKeyboard().type(stripped);
+				break;
+			case STATUS:
+				bd.getKeyboard().type("Ready.");
+				break;
+			case TIME:
+				bd.getKeyboard().type("It is currently: "+Misc.getTimeStamp());
+				break;
+			case FOLLOW:
+				if (dictator.hasAction("Follow")) {
+					dictator.interactForceRight("Follow");
+					Misc.printDev("Now following "+dictator.getName());
+				}
+				break;
+			case INTERACT_ENTITY:
+				if (parts.length < 3) {
+					Misc.printDev("parts < 3, need more args to interact with entity");
+					break;
+				}
+				if (target == null) {
+					Misc.printDev("Target was not declared. Use \"{\" and \"}\" brackets.");
+					break;
+				}
+				if (action == null) {
+					Misc.printDev("Action was not declared. Use \"(\" and \")\" brackets.");
+					break;
+				}
+				Misc.printDev("We're all good, prepare to interact with entity");
+				
+				break;
+			default:
+				Misc.printDev("Default case has caught: "+command);
+				break;
+			}
+		} catch (Exception e) {
+			Misc.printDev("Error occured while handling command!\n "+e.getMessage());
+		}
+	}
+	
+	public void handleMessage(Player dictator, String message, BotDictator bd) {
 		if (dictator == null) {
-			Misc.printDev("dictator has returned null in handleMessage");
+			Misc.printDev("dictator == null, via handleMessage");
 			return;
 		}
 		if (!dictators.contains(dictator.getName().toLowerCase())) {
@@ -60,35 +120,10 @@ public class BotDictator extends AbstractScript implements MessageListener {
 		message = message.toLowerCase();
 		
 		for (ChatCommand cc : ChatCommand.values()) {
-			if (message.startsWith("!") && message.contains(cc.toString())) {
-				chatCommands(dictator, cc, message, kb);
-			}
-		}
-		 
-		
-	}
-	
-	private static void chatCommands(Player dictator, ChatCommand chatCommand, String message, Keyboard kb) {
-		switch(chatCommand) {
-		case REPEAT:
-			try {
-				String msgStripped = message.substring(chatCommand.toString().length()+2); //+2 accounts for 1 exclamation mark, and 1 space.
-				Misc.printDev("Msg stripped: "+msgStripped);
-				kb.type(msgStripped);
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
-			break;
-		case STATUS:
-			kb.type("Ready.");
-			break;
-		case TIME:
-			kb.type("It is currently: "+Misc.getTimeStamp());
-			break;
-		case FOLLOW:
-			if (dictator.hasAction("Follow")) {
-				dictator.interactForceRight("Follow");
-				Misc.printDev("Now following "+dictator.getName());
+			if (message.startsWith("!") && message.substring(1).contains(cc.toString())) {
+				Misc.printDev("Message matched a command, passing to handler.");
+				chatCommands(dictator, cc, message.substring(1), bd); 
+				break;
 			}
 		}
 	}
@@ -100,26 +135,26 @@ public class BotDictator extends AbstractScript implements MessageListener {
 	}
 
 	@Override
-	public void onPlayerMessage(Message arg0) {
-		Misc.printDev("Handling playerMsg \""+arg0.getMessage()+"\"");
-		handleMessage(Misc.getPlayerByName(arg0.getUsername(), this.getPlayers().all()), arg0.getMessage(), this.getKeyboard());
+	public void onPlayerMessage(Message message) {
+		Misc.printDev("Handling playerMsg \""+message.getMessage()+"\"");
+		handleMessage(Misc.getPlayerByName(message.getUsername(), this.getPlayers().all()), message.getMessage(), this);
 	}
 	
 	@Override
-	public void onGameMessage(Message arg0) {
+	public void onGameMessage(Message message) {
 	}
 	
 	@Override
-	public void onPrivateInMessage(Message arg0) {
-		Misc.printDev("Handling privateMessage \""+arg0.getMessage()+"\"");
-		handleMessage(Misc.getPlayerByName(arg0.getUsername(), this.getPlayers().all()), arg0.getMessage(), this.getKeyboard());
+	public void onPrivateInMessage(Message message) {
+		Misc.printDev("Handling privateMessage \""+message.getMessage()+"\"");
+		handleMessage(Misc.getPlayerByName(message.getUsername(), this.getPlayers().all()), message.getMessage(), this);
 	}
 
 	@Override
-	public void onPrivateOutMessage(Message arg0) {
+	public void onPrivateOutMessage(Message message) {
 	}
 
 	@Override
-	public void onTradeMessage(Message arg0) {
+	public void onTradeMessage(Message message) {
 	}
 }

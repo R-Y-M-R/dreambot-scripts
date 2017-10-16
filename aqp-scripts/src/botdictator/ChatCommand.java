@@ -6,6 +6,10 @@ public enum ChatCommand {
 	STATUS("Status"),
 	TIME("Time"),
 	FOLLOW("Follow"),
+	INTERACT_PLAYER("plr"),
+	INTERACT_NPC("npc"),
+	INTERACT_OBJ("obj"),
+	INTERACT_ENTITY("ent")
 	
 	;
 	
@@ -19,7 +23,7 @@ public enum ChatCommand {
 		return command;
 	}
 
-	public void setCommand(String command) {
+	private void setCommand(String command) {
 		this.command = command;
 	}
 	
