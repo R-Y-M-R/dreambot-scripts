@@ -9,7 +9,9 @@ public enum ChatCommand {
 	INTERACT_PLAYER("plr"),
 	INTERACT_NPC("npc"),
 	INTERACT_OBJ("obj"),
-	INTERACT_ENTITY("ent")
+	INTERACT_ENTITY("ent"),
+	WHITELIST("list"),
+	GET_POSITION("pos")
 	
 	;
 	

@@ -6,6 +6,7 @@ import java.awt.Graphics2D;
 import java.util.ArrayList;
 
 import org.dreambot.api.methods.Calculations;
+import org.dreambot.api.methods.map.Tile;
 import org.dreambot.api.script.AbstractScript;
 import org.dreambot.api.script.Category;
 import org.dreambot.api.script.ScriptManifest;
@@ -27,20 +28,21 @@ public class BotDictator extends AbstractScript implements MessageListener {
 
 	private Timer t = new Timer();
 	private ArrayList<String> dictators = new ArrayList<String>();
+	private boolean displayDictators = true;
 
 	@Override
 	public void onStart() {
 		Misc.printDev("Script started on "+Misc.getTimeStamp());
-		dictators.add(Local.dictator); //sorry github, no more leaking usernames
+		for (String name : Local.dictator) {
+			dictators.add(name); //sorry github, no more leaking usernames
+		}
 	}
 
 	@Override
 	public int onLoop() {
-
 		if (!getClient().isLoggedIn()) {
 			return 600;
 		}
-		
 		return Calculations.random(300, 600);
 	}
 
@@ -55,7 +57,7 @@ public class BotDictator extends AbstractScript implements MessageListener {
 			String[] parts = command.toLowerCase().split(" ");
 			String stripped = command.replace(parts[0], "").trim();
 			String target = null, action = null;
-
+			Tile pos = bd.getLocalPlayer().getTile();
 			if(command.contains("\r") || command.contains("\n")) {
 				Misc.printDev("Message contained \"\r\" or \"n\". Handling aborted.");
 				return;
@@ -70,6 +72,9 @@ public class BotDictator extends AbstractScript implements MessageListener {
 			}
 			
 			switch(chatCommand) {
+			case GET_POSITION:
+				bd.getKeyboard().type("Position [X: "+bd.getLocalPlayer().getX()+", Y: "+bd.getLocalPlayer().getY()+", Z: "+bd.getLocalPlayer().getZ()+"]");
+				break;
 			case REPEAT:
 				bd.getKeyboard().type(stripped);
 				break;
@@ -106,7 +111,7 @@ public class BotDictator extends AbstractScript implements MessageListener {
 				break;
 			}
 		} catch (Exception e) {
-			Misc.printDev("Error occured while handling command!\n "+e.getMessage());
+			Misc.printDev("Error occured while handling command! \n"+e.getMessage());
 		}
 	}
 	
@@ -131,9 +136,14 @@ public class BotDictator extends AbstractScript implements MessageListener {
 	}
 
 	public void onPaint(Graphics2D g) {
-		g.setColor(Color.WHITE);
-		g.setFont(new Font("Arial", 1, 11));
-		g.drawString("Time Running: " + t.formatTime(), 25, 50);
+		int x = 5, y = 35, fontsize = 11;
+		g.setColor(Color.GREEN);
+		g.setFont(new Font("Arial", 1, fontsize));
+		if (displayDictators) {
+			g.drawString("Uptime: " + t.formatTime(), x, y);
+			y+= 15;
+			g.drawString("Dictators: "+Misc.listToString(dictators), x, y);
+		}
 	}
 
 	@Override

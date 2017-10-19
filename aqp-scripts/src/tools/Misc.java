@@ -15,7 +15,23 @@ import org.dreambot.api.wrappers.interactive.Player;
 public abstract class Misc {
 	
 	/**
-	 * 
+	 * Converts a list into a combined string
+	 * @param list	a list of Strings
+	 * @return	the strings added to a single String
+	 */
+	public static String listToString(List<String> list) {
+		String out = "";
+		for (int i = 0; i < list.size(); i++) {
+			out += toCapitalizedLowercase(list.get(i));
+			if (i != list.size()-1) {
+				out += ", ";
+			}
+		}
+		return out;
+	}
+	
+	/**
+	 * First letter will be UPPERCASE, others lowercase
 	 * @param unformatted	the original string
 	 * @return 	the string with the first letter capitalized, and other letters in lower case
 	 */
@@ -49,12 +65,10 @@ public abstract class Misc {
 	    if(str == null || searchStr == null) { 
 	    	return false;
 	    }
-
 	    final int length = searchStr.length();
 	    if (length == 0) {
 	        return true;
 	    }
-
 	    for (int i = str.length() - length; i >= 0; i--) {
 	        if (str.regionMatches(true, i, searchStr, 0, length)) {
 	            return true;
@@ -72,11 +86,22 @@ public abstract class Misc {
 	}
 	
 	/**
+	 * Determines if you should see printDev messages
+	 * @return	true if forum name is "A q p"
+	 */
+	public static final boolean shouldPrintDev() {
+		if (!getForumUser().equalsIgnoreCase("A q p")) {
+			return false;
+		}
+		return true;
+	}
+	
+	/**
 	 * This method will print things hidden by default for end users.
 	 * @param	message	a String to be used as output
 	 */
 	public static void printDev(String message) {	
-		if (!Client.getForumUser().getUsername().equalsIgnoreCase("A q p")) {
+		if (!shouldPrintDev()) {
 			return;
 		}
 		System.out.println(message);
