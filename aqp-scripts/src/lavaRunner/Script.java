@@ -11,9 +11,11 @@ import org.dreambot.api.methods.map.Tile;
 import org.dreambot.api.script.AbstractScript;
 import org.dreambot.api.script.Category;
 import org.dreambot.api.script.ScriptManifest;
+import org.dreambot.api.script.listener.MessageListener;
 import org.dreambot.api.utilities.Timer;
 import org.dreambot.api.wrappers.interactive.GameObject;
 import org.dreambot.api.wrappers.interactive.Player;
+import org.dreambot.api.wrappers.widgets.message.Message;
 
 import tools.Local;
 import tools.Misc;
@@ -23,7 +25,7 @@ import tools.Misc;
  */
 
 @ScriptManifest(name = "Lava Runner", author = "A q p", description = "[DEV] Lava Runner", version = 1, category = Category.RUNECRAFTING)
-public class Script extends AbstractScript {
+public class Script extends AbstractScript implements MessageListener {
 	
 	//Variables
 	private final Area bankArea = new Area(3380, 3273, 3384, 3267, 0);			//The area of the bank
@@ -34,10 +36,13 @@ public class Script extends AbstractScript {
 	private final Tile exitAltarTile = new Tile(2575, 4849, 0);
 	private Timer t = new Timer();		//A timer
 	public Timer lastTrade = new Timer();
+	public boolean acc1 = false;
+	public boolean acc2 = false;
 
 	@Override
 	public void onStart() {
 		this.getWalking().setRunThreshold(50);
+		lastTrade.setRunTime(Config.TRADE_COOLDOWN+1);
 		Misc.printDev("Started Lava Runner: "+Misc.getTimeStamp());
 	}
 
@@ -168,32 +173,43 @@ public class Script extends AbstractScript {
 			return;
 		}
 		
-		if (innerAltarArea.contains(target)) {
+		if (!innerAltarArea.contains(target)) {
 			log("The master is not inside the altar area. Eror #405");
 			return;
 		}
 		
 		if (!getTrade().isOpen()) { //if the trade is not open
-			if (target.isStandingStill()) { //and out master isn't busy
+			log("trade is not open");
+			if (target.getAnimation() == -1) { //and out master isn't busy
+				log("master is not busy");
 				if (lastTrade.elapsed() > Config.TRADE_COOLDOWN) { //and we aren't spamming the master
+					log("we're passed countdown");
 					if (getTrade().tradeWithPlayer(target.getName())) { //we can try to trade master
+						log("we try to trade master");
 						lastTrade.reset();	//reset timer
+						acc1 = false;
+						acc2 = false;
 						Misc.smallSleep();	//sleep on that thought
 					}
 				}
 			}
 		} else if (getTrade().isOpen(1)) { //if the trade(1) is open
-			if (getTrade().addItem("Pure essence", Config.ESSENCE_TO_WITHDRAW)) {
-				log("Attempting to trade "+Config.ESSENCE_TO_WITHDRAW+" x Pure Essence");
-				Misc.smallSleep();
+			if (!getTrade().contains(true, 1, "Pure essence")) {
+				if (getTrade().addItem("Pure essence", Config.ESSENCE_TO_WITHDRAW)) {
+					log("Attempting to trade "+Config.ESSENCE_TO_WITHDRAW+" x Pure Essence");
+					Misc.smallSleep();
+				}
 			}
-			if (getTrade().acceptTrade()) { // accept trade
+			
+			if (getTrade().acceptTrade() && !acc1) { // accept trade
 				log("Accepting trade (1)");
+				acc1 = true;
 				Misc.medSleep();
 			}
-		} else if (getTrade().isOpen(2)) { //if the trade(2) is open
+		} else if (getTrade().isOpen(2) && !acc2) { //if the trade(2) is open
 			if (getTrade().acceptTrade()) { // accept trade
 				log("Accepting trade (2)");
+				acc2 = true;
 				Misc.longSleep();
 			}
 		}
@@ -207,6 +223,9 @@ public class Script extends AbstractScript {
 	}
 	
 	public boolean needToBank() {
+		if (getTrade().isOpen()) {
+			return false;
+		}
 		if (!getInventory().contains("Pure essence") || getInventory().count("Pure essence") < Config.NEED_BANK_THRESHOLD) {
 			return true;
 		}
@@ -245,5 +264,45 @@ public class Script extends AbstractScript {
 		g.setColor(Color.WHITE);
 		g.setFont(new Font("Arial", 1, 11));
 		g.drawString("Time Running: " + t.formatTime(), 25, 50);
+	}
+
+	@Override
+	public void onGameMessage(Message msg) {
+		if (msg.equals("Sending trade offer...")) {
+			
+			log("onGameMessage trading offer");
+		}
+	}
+
+	@Override
+	public void onPlayerMessage(Message msg) {
+		if (msg.equals("Sending trade offer...")) {
+			lastTrade.reset();	//reset timer
+			log("onPlayerMessage trading offer");
+		}
+	}
+
+	@Override
+	public void onPrivateInMessage(Message msg) {
+		if (msg.equals("Sending trade offer...")) {
+			lastTrade.reset();	//reset timer
+			log("onPrivateInMessage trading offer");
+		}
+	}
+
+	@Override
+	public void onPrivateOutMessage(Message msg) {
+		if (msg.equals("Sending trade offer...")) {
+			lastTrade.reset();	//reset timer
+			log("onPrivateOutMessage trading offer");
+		}
+	}
+
+	@Override
+	public void onTradeMessage(Message msg) {
+		if (msg.equals("Sending trade offer...")) {
+			lastTrade.reset();	//reset timer
+			log("onTradeMessage trading offer");
+		}
 	}
 }
