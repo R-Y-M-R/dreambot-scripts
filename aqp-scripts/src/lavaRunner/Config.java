@@ -17,6 +17,11 @@ public class Config {
 	public static final int NEED_BANK_THRESHOLD = 10;
 	
 	/**
+	 * The amount of time in between camera resets.
+	 */
+	public static final long CAMERA_RESET = 180000;
+	
+	/**
 	 * The amount of time in between trades with the master.
 	 */
 	public static final long TRADE_COOLDOWN = 30000; //30 seconds = 30000 miliseconds

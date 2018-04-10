@@ -35,15 +35,24 @@ public class Script extends AbstractScript implements MessageListener {
 	private final Tile bankTile = new Tile(3381, 3268, 0);						//The specific tile to use in the bank
 	private final Tile exitAltarTile = new Tile(2575, 4849, 0);
 	private Timer t = new Timer();		//A timer
-	public Timer lastTrade = new Timer();
-	public boolean acc1 = false;
-	public boolean acc2 = false;
+	private Timer lastTrade = new Timer();
+	private Timer resetCamera = new Timer();
+	
+	private boolean acc1 = true;
+	private boolean acc2 = true;
+	private boolean skipFirstTradeWait = true;
+	private boolean skipFirstCameraRotate = true;
 
 	@Override
 	public void onStart() {
 		this.getWalking().setRunThreshold(50);
 		lastTrade.setRunTime(Config.TRADE_COOLDOWN+1);
 		Misc.printDev("Started Lava Runner: "+Misc.getTimeStamp());
+		resetRunThreshold();
+	}
+	
+	public void resetRunThreshold() {
+		getWalking().setRunThreshold(Calculations.random(40, 50));
 	}
 
 	@Override
@@ -56,10 +65,20 @@ public class Script extends AbstractScript implements MessageListener {
 			return Misc.smallSleep();
 		}
 		
+		if (resetCamera.elapsed() > Config.CAMERA_RESET || skipFirstCameraRotate) {
+			if (skipFirstCameraRotate) {
+				skipFirstCameraRotate = false;
+			}
+			resetCamera();
+			resetCamera.reset();
+		}
+		
 		
 
 		//if we should bank
 		if (needToBank()) {
+			resetRunThreshold();
+			
 			if (Config.EXTREME_DEBUGGING) {
 				Misc.smallSleep();
 				log("We need to bank!");
@@ -76,7 +95,7 @@ public class Script extends AbstractScript implements MessageListener {
 					log("We're trying to exit the inner altar!");
 				}
 				if (getWalking().walk(exitAltarTile)) {
-					Misc.smallSleep();
+					Misc.smallAfkSleep();
 				}
 				Misc.smallSleep();
 				
@@ -87,7 +106,7 @@ public class Script extends AbstractScript implements MessageListener {
 				GameObject portal = getGameObjects().closest("Portal");
 				if (portal != null) {
 					if (portal.interact("Use")) {
-						Misc.smallSleep();
+						Misc.longSleep();
 					}
 					Misc.smallSleep();
 				}
@@ -104,7 +123,7 @@ public class Script extends AbstractScript implements MessageListener {
 					log("So we'll walk to the bank!");
 				}
 				if (getWalking().walk(bankTile)) {
-					Misc.smallSleep();
+					Misc.smallAfkSleep();
 				}
 			//we are in the bank
 			} else {
@@ -122,8 +141,9 @@ public class Script extends AbstractScript implements MessageListener {
 					Misc.smallSleep();
 					log("We aren't in ruins and aren't inside ruins, so we want to walk into the outer ruins!");
 				}
+
 				if (getWalking().walk(outerAltarArea.getRandomTile())) {
-					Misc.smallSleep();
+					Misc.smallAfkSleep();
 				}
 			}
 			
@@ -135,7 +155,7 @@ public class Script extends AbstractScript implements MessageListener {
 				GameObject ruins = getGameObjects().closest("Mysterious ruins");
 				if (ruins != null) {
 					if (ruins.interact("Enter")) { //enter the ruins
-						Misc.smallSleep();
+						Misc.longSleep();
 					}
 					Misc.smallSleep();
 				}
@@ -154,6 +174,11 @@ public class Script extends AbstractScript implements MessageListener {
 		
 
 		return 100;
+	}
+	
+	public void resetCamera() {
+		getCamera().rotateToYaw(0);
+		getCamera().rotateToPitch(383);
 	}
 	
 	public void checkForMods() {
@@ -182,7 +207,10 @@ public class Script extends AbstractScript implements MessageListener {
 			log("trade is not open");
 			if (target.getAnimation() == -1) { //and out master isn't busy
 				log("master is not busy");
-				if (lastTrade.elapsed() > Config.TRADE_COOLDOWN) { //and we aren't spamming the master
+				if (lastTrade.elapsed() > Config.TRADE_COOLDOWN || skipFirstTradeWait) { //and we aren't spamming the master
+					if (skipFirstTradeWait) {
+						skipFirstTradeWait = false;
+					}
 					log("we're passed countdown");
 					if (getTrade().tradeWithPlayer(target.getName())) { //we can try to trade master
 						log("we try to trade master");
@@ -269,7 +297,6 @@ public class Script extends AbstractScript implements MessageListener {
 	@Override
 	public void onGameMessage(Message msg) {
 		if (msg.equals("Sending trade offer...")) {
-			
 			log("onGameMessage trading offer");
 		}
 	}
@@ -277,7 +304,6 @@ public class Script extends AbstractScript implements MessageListener {
 	@Override
 	public void onPlayerMessage(Message msg) {
 		if (msg.equals("Sending trade offer...")) {
-			lastTrade.reset();	//reset timer
 			log("onPlayerMessage trading offer");
 		}
 	}
@@ -285,7 +311,6 @@ public class Script extends AbstractScript implements MessageListener {
 	@Override
 	public void onPrivateInMessage(Message msg) {
 		if (msg.equals("Sending trade offer...")) {
-			lastTrade.reset();	//reset timer
 			log("onPrivateInMessage trading offer");
 		}
 	}
@@ -293,7 +318,6 @@ public class Script extends AbstractScript implements MessageListener {
 	@Override
 	public void onPrivateOutMessage(Message msg) {
 		if (msg.equals("Sending trade offer...")) {
-			lastTrade.reset();	//reset timer
 			log("onPrivateOutMessage trading offer");
 		}
 	}
@@ -301,7 +325,6 @@ public class Script extends AbstractScript implements MessageListener {
 	@Override
 	public void onTradeMessage(Message msg) {
 		if (msg.equals("Sending trade offer...")) {
-			lastTrade.reset();	//reset timer
 			log("onTradeMessage trading offer");
 		}
 	}

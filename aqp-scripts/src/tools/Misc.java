@@ -15,9 +15,6 @@ import org.dreambot.api.wrappers.interactive.Player;
  */
 public abstract class Misc {
 	
-
-
-	
 	/**
 	 * Converts a list into a combined string
 	 * @param list	a list of Strings
@@ -142,6 +139,14 @@ public abstract class Misc {
 	 */
 	public static int longSleep() {
 		return Calculations.random(1400, 4500); 
+	}
+	
+	/**
+	 * Useful for a small afk
+	 * @return an int between 3500 and 6000
+	 */
+	public static int smallAfkSleep() {
+		return Calculations.random(3500, 6000);
 	}
 
 }
