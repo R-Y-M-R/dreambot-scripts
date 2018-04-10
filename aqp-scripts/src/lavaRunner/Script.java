@@ -13,6 +13,7 @@ import org.dreambot.api.script.Category;
 import org.dreambot.api.script.ScriptManifest;
 import org.dreambot.api.utilities.Timer;
 import org.dreambot.api.wrappers.interactive.GameObject;
+import org.dreambot.api.wrappers.interactive.Player;
 
 import tools.Misc;
 
@@ -34,6 +35,7 @@ public class Script extends AbstractScript {
 
 	@Override
 	public void onStart() {
+		this.getWalking().setRunThreshold(50);
 		Misc.printDev("Started Lava Runner: "+Misc.getTimeStamp());
 	}
 
@@ -46,6 +48,8 @@ public class Script extends AbstractScript {
 			return Misc.smallSleep();
 		}
 		
+		
+
 		//if we should bank
 		if (needToBank()) {
 			if (Config.EXTREME_DEBUGGING) {
@@ -63,7 +67,9 @@ public class Script extends AbstractScript {
 					Misc.smallSleep();
 					log("We're trying to exit the inner altar!");
 				}
-				getWalking().walk(exitAltarTile);
+				if (getWalking().walk(exitAltarTile)) {
+					Misc.smallSleep();
+				}
 				Misc.smallSleep();
 				
 				if (Config.EXTREME_DEBUGGING) {
@@ -72,7 +78,9 @@ public class Script extends AbstractScript {
 				}
 				GameObject portal = getGameObjects().closest("Portal");
 				if (portal != null) {
-					portal.interact("Use");
+					if (portal.interact("Use")) {
+						Misc.smallSleep();
+					}
 					Misc.smallSleep();
 				}
 			} else
@@ -87,7 +95,9 @@ public class Script extends AbstractScript {
 					Misc.smallSleep();
 					log("So we'll walk to the bank!");
 				}
-				getWalking().walk(bankTile);
+				if (getWalking().walk(bankTile)) {
+					Misc.smallSleep();
+				}
 			//we are in the bank
 			} else {
 				if (Config.EXTREME_DEBUGGING) {
@@ -104,7 +114,9 @@ public class Script extends AbstractScript {
 					Misc.smallSleep();
 					log("We aren't in ruins and aren't inside ruins, so we want to walk into the outer ruins!");
 				}
-				getWalking().walk(outerAltarArea.getRandomTile());
+				if (getWalking().walk(outerAltarArea.getRandomTile())) {
+					Misc.smallSleep();
+				}
 			}
 			
 			if (outerAltarArea.contains(getLocalPlayer())){											//if we're inside the outside altar area
@@ -114,7 +126,9 @@ public class Script extends AbstractScript {
 				}
 				GameObject ruins = getGameObjects().closest("Mysterious ruins");
 				if (ruins != null) {
-					ruins.interact("Enter");													//enter the ruins
+					if (ruins.interact("Enter")) { //enter the ruins
+						Misc.smallSleep();
+					}
 					Misc.smallSleep();
 				}
 			}
@@ -124,6 +138,7 @@ public class Script extends AbstractScript {
 					Misc.smallSleep();
 					log("We would handle trading here.");
 				}
+				handleTrading();
 			} 
 			
 			
@@ -131,6 +146,17 @@ public class Script extends AbstractScript {
 		
 
 		return 100;
+	}
+	
+	public void handleTrading() {
+		Player target;
+		if (innerAltarArea.contains(target)) {
+			
+		}
+		
+		if (!getTrade().isOpen()) {
+			
+		}
 	}
 	
 	public boolean needToBank() {
@@ -158,6 +184,7 @@ public class Script extends AbstractScript {
 			getBank().withdraw("Pure essence", Config.ESSENCE_TO_WITHDRAW);
 			Misc.smallSleep();
 			getBank().close();
+			Misc.smallSleep();
 		}
 	}
 	

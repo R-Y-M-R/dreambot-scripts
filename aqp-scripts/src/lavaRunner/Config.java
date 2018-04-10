@@ -16,6 +16,6 @@ public class Config {
 	 */
 	public static final int NEED_BANK_THRESHOLD = 10;
 	
-	public static final boolean EXTREME_DEBUGGING = true;
+	public static final boolean EXTREME_DEBUGGING = false;
 
 }
