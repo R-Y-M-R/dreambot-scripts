@@ -26,7 +26,8 @@ public class Script extends AbstractScript {
 	//Variables
 	private final Area bankArea = new Area(3380, 3273, 3384, 3267, 0);			//The area of the bank
 	private final Area innerAltarArea = new Area(2560, 4860, 2600, 4820, 0);	//The area of the (inner) altar
-	private final Area outerAltarArea = new Area(3317, 3259, 3309, 3251, 0);	//The area of the (outer) altar
+	//private final Area outerAltarArea = new Area(3317, 3259, 3309, 3251, 0);	//The area of the (outer) altar
+	private final Area outerAltarArea = new Area(new Tile(3317, 3259), new Tile(3309, 3251));	//The area of the (outer) altar
 	private final Tile bankTile = new Tile(3381, 3268, 0);						//The specific tile to use in the bank
 	private final Tile exitAltarTile = new Tile(2575, 4849, 0);
 	private Timer t = new Timer();												//A timer
@@ -52,7 +53,7 @@ public class Script extends AbstractScript {
 				log("We need to bank!");
 			}
 			//check if we're in runecrafting area
-			if (containsLocalPlayer(innerAltarArea)) {
+			if (innerAltarArea.contains(getLocalPlayer())) {
 				if (Config.EXTREME_DEBUGGING) {
 					Misc.smallSleep();
 					log("We're inside the inner Altar.");
@@ -76,7 +77,7 @@ public class Script extends AbstractScript {
 				}
 			} else
 			//if we are not in the bank,
-			if (!containsLocalPlayer(bankArea)) {
+			if (!bankArea.contains(getLocalPlayer())) {
 				if (Config.EXTREME_DEBUGGING) {
 					Misc.smallSleep();
 					log("We are not in the bank");
@@ -98,11 +99,15 @@ public class Script extends AbstractScript {
 			}
 		//don't need to bank
 		} else {
-			if (!containsLocalPlayer(outerAltarArea) && !containsLocalPlayer(innerAltarArea)) { //if we not inside any altaer
-				getWalking().walk(outerAltarArea.getCenter());
+			if (!outerAltarArea.contains(getLocalPlayer()) && !innerAltarArea.contains(getLocalPlayer())) { //if we not inside any altaer
+				if (Config.EXTREME_DEBUGGING) {
+					Misc.smallSleep();
+					log("We aren't in ruins and aren't inside ruins, so we want to walk into the outer ruins!");
+				}
+				getWalking().walk(outerAltarArea.getRandomTile());
 			}
 			
-			if (containsLocalPlayer(outerAltarArea)){											//if we're inside the outside altar area
+			if (outerAltarArea.contains(getLocalPlayer())){											//if we're inside the outside altar area
 				if (Config.EXTREME_DEBUGGING) {
 					Misc.smallSleep();
 					log("We want to use the Ruins!");
@@ -114,7 +119,7 @@ public class Script extends AbstractScript {
 				}
 			}
 			
-			if (containsLocalPlayer(innerAltarArea)) {											//if we're in the inner area
+			if (innerAltarArea.contains(getLocalPlayer())) {											//if we're in the inner area
 				if (Config.EXTREME_DEBUGGING) {
 					Misc.smallSleep();
 					log("We would handle trading here.");
@@ -156,14 +161,6 @@ public class Script extends AbstractScript {
 		}
 	}
 	
-	/**
-	 * Determines if a given area contains our local player
-	 * @param area	the area to check if local player is in
-	 * @return	true if localplayer is in area
-	 */
-	public boolean containsLocalPlayer(Area area) {
-		return getPlayers().all(p -> p != null && area.contains(p) && !p.equals(getLocalPlayer())).size() > 0;
-	}
 
 	@Override
 	public void onExit() {
