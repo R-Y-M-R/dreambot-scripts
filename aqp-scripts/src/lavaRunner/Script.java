@@ -4,7 +4,9 @@ import java.awt.Color;
 import java.awt.Font;
 import java.awt.Graphics2D;
 
+import org.dreambot.api.methods.container.impl.bank.BankMode;
 import org.dreambot.api.methods.map.Area;
+import org.dreambot.api.methods.map.Tile;
 import org.dreambot.api.script.AbstractScript;
 import org.dreambot.api.script.Category;
 import org.dreambot.api.script.ScriptManifest;
@@ -20,9 +22,11 @@ import tools.Misc;
 public class Script extends AbstractScript {
 	
 	//Variables
-	private Area bankArea = new Area(3380, 3267, 3384, 3273);
-	private Area altarArea = new Area();
-	private Timer t = new Timer();
+	private final Area bankArea = new Area(3380, 3267, 3384, 3273, 0);			//The area of the bank
+	private final Tile bankTile = new Tile(3381, 3268, 0);						//The specific tile to use in the bank
+	private final Area innerAltarArea = new Area(2560, 4860, 2600, 4820, 0);	//The area of the (inner) altar
+	private final Area outerAltarArea = new Area(3317, 3259, 3309, 3251, 0);	//The area of the (outer) altar
+	private Timer t = new Timer();												//A timer
 
 	@Override
 	public void onStart() {
@@ -40,12 +44,14 @@ public class Script extends AbstractScript {
 		//if we should bank
 		if (needToBank()) {
 			//check if we're in runecrafting area
-			//then walk out of runecrafting area
-			
+			if (containsLocalPlayer(innerAltarArea)) {
+				//then walk out of runecrafting area
+				
+			} else
 			//if we are not in the bank,
 			if (!containsLocalPlayer(bankArea)) {
 				//walk to the bank.
-				getWalking().walk(bankArea.getCenter());
+				getWalking().walk(bankTile);
 			//we are in the bank
 			} else {
 				//so, bank
@@ -67,7 +73,19 @@ public class Script extends AbstractScript {
 	}
 	
 	public void handleBanking() {
-		
+		if (!getBank().isOpen()) {
+			getBank().openClosest();
+		} else { //bank is open
+			if (!getBank().placeHoldersEnabled()) {
+				getBank().togglePlaceholders(true);
+			}
+			if (getBank().getWithdrawMode() == BankMode.NOTE) {
+				getBank().setWithdrawMode(BankMode.ITEM);
+			}
+			getBank().depositAllItems();
+			getBank().withdraw("Pure essence", Config.ESSENCE_TO_WITHDRAW);
+			getBank().close();
+		}
 	}
 	
 	/**
