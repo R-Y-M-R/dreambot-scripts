@@ -23,7 +23,7 @@ import tools.Misc;
 public class Script extends AbstractScript {
 	
 	//Variables
-	private final Area bankArea = new Area(3380, 3267, 3384, 3273, 0);			//The area of the bank
+	private final Area bankArea = new Area(3380, 3273, 3384, 3267, 0);			//The area of the bank
 	private final Area innerAltarArea = new Area(2560, 4860, 2600, 4820, 0);	//The area of the (inner) altar
 	private final Area outerAltarArea = new Area(3317, 3259, 3309, 3251, 0);	//The area of the (outer) altar
 	private final Tile bankTile = new Tile(3381, 3268, 0);						//The specific tile to use in the bank
@@ -45,10 +45,28 @@ public class Script extends AbstractScript {
 		
 		//if we should bank
 		if (needToBank()) {
+			if (Config.EXTREME_DEBUGGING) {
+				Misc.smallSleep();
+				log("We need to bank!");
+			}
 			//check if we're in runecrafting area
 			if (containsLocalPlayer(innerAltarArea)) {
+				if (Config.EXTREME_DEBUGGING) {
+					Misc.smallSleep();
+					log("We're inside the inner Altar.");
+				}
 				//then walk out of runecrafting area
+				if (Config.EXTREME_DEBUGGING) {
+					Misc.smallSleep();
+					log("We're trying to exit the inner altar!");
+				}
 				getWalking().walk(exitAltarTile);
+				Misc.smallSleep();
+				
+				if (Config.EXTREME_DEBUGGING) {
+					Misc.smallSleep();
+					log("We want to use the portal!");
+				}
 				GameObject portal = getGameObjects().closest("Portal");
 				if (portal != null) {
 					portal.interact("Use");
@@ -57,10 +75,22 @@ public class Script extends AbstractScript {
 			} else
 			//if we are not in the bank,
 			if (!containsLocalPlayer(bankArea)) {
+				if (Config.EXTREME_DEBUGGING) {
+					Misc.smallSleep();
+					log("We are not in the bank");
+				}
 				//walk to the bank.
+				if (Config.EXTREME_DEBUGGING) {
+					Misc.smallSleep();
+					log("So we'll walk to the bank!");
+				}
 				getWalking().walk(bankTile);
 			//we are in the bank
 			} else {
+				if (Config.EXTREME_DEBUGGING) {
+					Misc.smallSleep();
+					log("We are in the bank!");
+				}
 				//so, bank
 				handleBanking();
 			}
@@ -90,12 +120,16 @@ public class Script extends AbstractScript {
 		} else { //bank is open
 			if (!getBank().placeHoldersEnabled()) {
 				getBank().togglePlaceholders(true);
+				Misc.smallSleep();
 			}
 			if (getBank().getWithdrawMode() == BankMode.NOTE) {
 				getBank().setWithdrawMode(BankMode.ITEM);
+				Misc.smallSleep();
 			}
 			getBank().depositAllItems();
+			Misc.smallSleep();
 			getBank().withdraw("Pure essence", Config.ESSENCE_TO_WITHDRAW);
+			Misc.smallSleep();
 			getBank().close();
 		}
 	}

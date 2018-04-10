@@ -15,5 +15,7 @@ public class Config {
 	 * The minimum amount of essence required in inventory for a trade to occur.
 	 */
 	public static final int NEED_BANK_THRESHOLD = 10;
+	
+	public static final boolean EXTREME_DEBUGGING = true;
 
 }
