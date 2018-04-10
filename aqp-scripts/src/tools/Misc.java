@@ -15,6 +15,9 @@ import org.dreambot.api.wrappers.interactive.Player;
  */
 public abstract class Misc {
 	
+
+
+	
 	/**
 	 * Converts a list into a combined string
 	 * @param list	a list of Strings
