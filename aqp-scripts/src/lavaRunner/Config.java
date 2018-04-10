@@ -29,6 +29,6 @@ public class Config {
 	/**
 	 * Will print additional debug messages.
 	 */
-	public static final boolean EXTREME_DEBUGGING = false;
+	public static final boolean EXTREME_DEBUGGING = true;
 
 }

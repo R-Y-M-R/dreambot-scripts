@@ -58,7 +58,6 @@ public class Script extends AbstractScript implements MessageListener {
 	@Override
 	public int onLoop() {
 		checkForMods();
-		Calculations.random(800, 1200);
 
 		//must be logged in
 		if (!getClient().isLoggedIn()) {
@@ -79,7 +78,12 @@ public class Script extends AbstractScript implements MessageListener {
 		//if we should bank
 		if (needToBank()) {
 			resetRunThreshold();
-			resetCamera();
+			if (getCamera().getYaw() > 1500 || getCamera().getYaw() < 500) {
+				if (Config.EXTREME_DEBUGGING) {
+					log("Our yaw: "+getCamera().getYaw()+", needs to be reset!");
+				}
+				resetCamera();
+			}
 			if (Config.EXTREME_DEBUGGING) {
 				log("We need to bank!");
 			}
@@ -169,7 +173,7 @@ public class Script extends AbstractScript implements MessageListener {
 	
 	public void resetCamera() {
 		if (Config.EXTREME_DEBUGGING) {
-			log("Reset camera. "+Misc.getTimeStamp());
+			log("Reset camera "+Misc.getTimeStamp());
 		}
 		getCamera().rotateToPitch(383);
 		getCamera().rotateToYaw(0);
@@ -339,36 +343,34 @@ public class Script extends AbstractScript implements MessageListener {
 
 	@Override
 	public void onGameMessage(Message msg) {
-		if (msg.equals("Sending trade offer...")) {
+		if (Config.EXTREME_DEBUGGING) {
 			log("onGameMessage trading offer");
 		}
 	}
 
 	@Override
 	public void onPlayerMessage(Message msg) {
-		if (msg.equals("Sending trade offer...")) {
+		if (Config.EXTREME_DEBUGGING) {
 			log("onPlayerMessage trading offer");
 		}
 	}
 
 	@Override
 	public void onPrivateInMessage(Message msg) {
-		if (msg.equals("Sending trade offer...")) {
+		if (Config.EXTREME_DEBUGGING) {
 			log("onPrivateInMessage trading offer");
 		}
 	}
 
 	@Override
 	public void onPrivateOutMessage(Message msg) {
-		if (msg.equals("Sending trade offer...")) {
+		if (Config.EXTREME_DEBUGGING) {
 			log("onPrivateOutMessage trading offer");
 		}
 	}
 
 	@Override
 	public void onTradeMessage(Message msg) {
-		if (msg.equals("Sending trade offer...")) {
-			log("onTradeMessage trading offer");
-		}
+		log("onTradeMessage trading offer");
 	}
 }
