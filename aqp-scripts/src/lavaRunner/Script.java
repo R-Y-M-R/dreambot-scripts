@@ -15,6 +15,7 @@ import org.dreambot.api.utilities.Timer;
 import org.dreambot.api.wrappers.interactive.GameObject;
 import org.dreambot.api.wrappers.interactive.Player;
 
+import tools.Local;
 import tools.Misc;
 
 /*
@@ -31,7 +32,8 @@ public class Script extends AbstractScript {
 	private final Area outerAltarArea = new Area(new Tile(3317, 3259), new Tile(3309, 3251));	//The area of the (outer) altar
 	private final Tile bankTile = new Tile(3381, 3268, 0);						//The specific tile to use in the bank
 	private final Tile exitAltarTile = new Tile(2575, 4849, 0);
-	private Timer t = new Timer();												//A timer
+	private Timer t = new Timer();		//A timer
+	public Timer lastTrade = new Timer();
 
 	@Override
 	public void onStart() {
@@ -41,6 +43,7 @@ public class Script extends AbstractScript {
 
 	@Override
 	public int onLoop() {
+		checkForMods();
 		Calculations.random(800, 1200);
 
 		//must be logged in
@@ -148,15 +151,59 @@ public class Script extends AbstractScript {
 		return 100;
 	}
 	
+	public void checkForMods() {
+		Player p = getPlayers().all(f -> f != null && f.getName().contains("Mod")).get(0);
+		String mod = "Mod";
+		if (p != null) {
+			mod = p.getName();
+		}
+		log("We just found "+mod+"! Script session suspended. Time: "+Misc.getTimeStamp());
+		getTabs().logout();
+		stop();
+	}
+	
+	
 	public void handleTrading() {
-		Player target;
-		if (innerAltarArea.contains(target)) {
-			
+		Player target = getPlayers().closest(Local.lavaBoss);
+		//(p -> p != null && p.getName().equals(Local.lavaBoss)).get(0);
+		if (target == null) {
+			log("Attempting to trade a nulled master! We're lost! Error #404: "+Misc.getTimeStamp());
+			return;
 		}
 		
-		if (!getTrade().isOpen()) {
-			
+		if (innerAltarArea.contains(target)) {
+			log("The master is not inside the altar area. Eror #405");
+			return;
 		}
+		
+		if (!getTrade().isOpen()) { //if the trade is not open
+			if (target.isStandingStill()) { //and out master isn't busy
+				if (lastTrade.elapsed() > Config.TRADE_COOLDOWN) { //and we aren't spamming the master
+					if (getTrade().tradeWithPlayer(target.getName())) { //we can try to trade master
+						lastTrade.reset();	//reset timer
+						Misc.smallSleep();	//sleep on that thought
+					}
+				}
+			}
+		} else if (getTrade().isOpen(1)) { //if the trade(1) is open
+			if (getTrade().addItem("Pure essence", Config.ESSENCE_TO_WITHDRAW)) {
+				Misc.smallSleep();
+			}
+			if (getTrade().acceptTrade()) { // accept trade
+				Misc.medSleep();
+			}
+		} else if (getTrade().isOpen(2)) { //if the trade(2) is open
+			if (getTrade().acceptTrade()) { // accept trade
+				Misc.longSleep();
+			}
+		}
+		
+
+		
+
+		
+		
+		
 	}
 	
 	public boolean needToBank() {

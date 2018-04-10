@@ -121,11 +121,27 @@ public abstract class Misc {
 	}
 	
 	/**
-	 * This will return an int between 300 and 600, useful for small sleeps
-	 * @return	an int between 300 and 600
+	 * Useful for small sleeps
+	 * @return	an int between 200 and 600
 	 */
 	public static int smallSleep() {
-		return Calculations.random(300, 600);
+		return Calculations.random(200, 600);
+	}
+	
+	/**
+	 * Useful for medium sleeps
+	 * @return	an int between 600 and 1400
+	 */
+	public static int medSleep() {
+		return Calculations.random(600, 1400);
+	}
+	
+	/**
+	 * Useful for long sleeps
+	 * @return	an int between 1400 and 4500
+	 */
+	public static int longSleep() {
+		return Calculations.random(1400, 4500); 
 	}
 
 }
