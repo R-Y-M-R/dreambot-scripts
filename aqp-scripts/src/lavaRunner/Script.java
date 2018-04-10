@@ -11,6 +11,7 @@ import org.dreambot.api.script.AbstractScript;
 import org.dreambot.api.script.Category;
 import org.dreambot.api.script.ScriptManifest;
 import org.dreambot.api.utilities.Timer;
+import org.dreambot.api.wrappers.interactive.GameObject;
 
 import tools.Misc;
 
@@ -23,9 +24,10 @@ public class Script extends AbstractScript {
 	
 	//Variables
 	private final Area bankArea = new Area(3380, 3267, 3384, 3273, 0);			//The area of the bank
-	private final Tile bankTile = new Tile(3381, 3268, 0);						//The specific tile to use in the bank
 	private final Area innerAltarArea = new Area(2560, 4860, 2600, 4820, 0);	//The area of the (inner) altar
 	private final Area outerAltarArea = new Area(3317, 3259, 3309, 3251, 0);	//The area of the (outer) altar
+	private final Tile bankTile = new Tile(3381, 3268, 0);						//The specific tile to use in the bank
+	private final Tile exitAltarTile = new Tile(2575, 4849, 0);
 	private Timer t = new Timer();												//A timer
 
 	@Override
@@ -46,7 +48,12 @@ public class Script extends AbstractScript {
 			//check if we're in runecrafting area
 			if (containsLocalPlayer(innerAltarArea)) {
 				//then walk out of runecrafting area
-				
+				getWalking().walk(exitAltarTile);
+				GameObject portal = getGameObjects().closest("Portal");
+				if (portal != null) {
+					portal.interact("Use");
+					Misc.smallSleep();
+				}
 			} else
 			//if we are not in the bank,
 			if (!containsLocalPlayer(bankArea)) {
@@ -57,6 +64,10 @@ public class Script extends AbstractScript {
 				//so, bank
 				handleBanking();
 			}
+		//we're in the bank area, but don't need to bank
+		} else if (containsLocalPlayer(bankArea)) {
+			getWalking().walk(outerAltarArea.getCenter());
+			
 		}
 		
 		
@@ -75,6 +86,7 @@ public class Script extends AbstractScript {
 	public void handleBanking() {
 		if (!getBank().isOpen()) {
 			getBank().openClosest();
+			Misc.smallSleep();
 		} else { //bank is open
 			if (!getBank().placeHoldersEnabled()) {
 				getBank().togglePlaceholders(true);
