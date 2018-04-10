@@ -62,7 +62,8 @@ public class Script extends AbstractScript implements MessageListener {
 
 		//must be logged in
 		if (!getClient().isLoggedIn()) {
-			return Misc.smallSleep();
+			smallSleep();
+			return 100;
 		}
 		
 		if (resetCamera.elapsed() > Config.CAMERA_RESET || skipFirstCameraRotate) {
@@ -78,57 +79,50 @@ public class Script extends AbstractScript implements MessageListener {
 		//if we should bank
 		if (needToBank()) {
 			resetRunThreshold();
-			
+			resetCamera();
 			if (Config.EXTREME_DEBUGGING) {
-				Misc.smallSleep();
 				log("We need to bank!");
 			}
 			//check if we're in runecrafting area
 			if (innerAltarArea.contains(getLocalPlayer())) {
 				if (Config.EXTREME_DEBUGGING) {
-					Misc.smallSleep();
 					log("We're inside the inner Altar.");
 				}
 				//then walk out of runecrafting area
 				if (Config.EXTREME_DEBUGGING) {
-					Misc.smallSleep();
 					log("We're trying to exit the inner altar!");
 				}
 				if (getWalking().walk(exitAltarTile)) {
-					Misc.smallAfkSleep();
+					smallAfkSleep();
 				}
-				Misc.smallSleep();
+				smallSleep();
 				
 				if (Config.EXTREME_DEBUGGING) {
-					Misc.smallSleep();
 					log("We want to use the portal!");
 				}
 				GameObject portal = getGameObjects().closest("Portal");
 				if (portal != null) {
 					if (portal.interact("Use")) {
-						Misc.longSleep();
+						longSleep();
 					}
-					Misc.smallSleep();
+					smallSleep();
 				}
 			} else
 			//if we are not in the bank,
 			if (!bankArea.contains(getLocalPlayer())) {
 				if (Config.EXTREME_DEBUGGING) {
-					Misc.smallSleep();
 					log("We are not in the bank");
 				}
 				//walk to the bank.
 				if (Config.EXTREME_DEBUGGING) {
-					Misc.smallSleep();
 					log("So we'll walk to the bank!");
 				}
 				if (getWalking().walk(bankTile)) {
-					Misc.smallAfkSleep();
+					smallAfkSleep();
 				}
 			//we are in the bank
 			} else {
 				if (Config.EXTREME_DEBUGGING) {
-					Misc.smallSleep();
 					log("We are in the bank!");
 				}
 				//so, bank
@@ -138,32 +132,29 @@ public class Script extends AbstractScript implements MessageListener {
 		} else {
 			if (!outerAltarArea.contains(getLocalPlayer()) && !innerAltarArea.contains(getLocalPlayer())) { //if we not inside any altaer
 				if (Config.EXTREME_DEBUGGING) {
-					Misc.smallSleep();
 					log("We aren't in ruins and aren't inside ruins, so we want to walk into the outer ruins!");
 				}
 
 				if (getWalking().walk(outerAltarArea.getRandomTile())) {
-					Misc.smallAfkSleep();
+					smallAfkSleep();
 				}
 			}
 			
 			if (outerAltarArea.contains(getLocalPlayer())){											//if we're inside the outside altar area
 				if (Config.EXTREME_DEBUGGING) {
-					Misc.smallSleep();
 					log("We want to use the Ruins!");
 				}
 				GameObject ruins = getGameObjects().closest("Mysterious ruins");
 				if (ruins != null) {
 					if (ruins.interact("Enter")) { //enter the ruins
-						Misc.longSleep();
+						longSleep();
 					}
-					Misc.smallSleep();
+					smallSleep();
 				}
 			}
 			
 			if (innerAltarArea.contains(getLocalPlayer())) {											//if we're in the inner area
 				if (Config.EXTREME_DEBUGGING) {
-					Misc.smallSleep();
 					log("We would handle trading here.");
 				}
 				handleTrading();
@@ -177,8 +168,11 @@ public class Script extends AbstractScript implements MessageListener {
 	}
 	
 	public void resetCamera() {
-		getCamera().rotateToYaw(0);
+		if (Config.EXTREME_DEBUGGING) {
+			log("Reset camera. "+Misc.getTimeStamp());
+		}
 		getCamera().rotateToPitch(383);
+		getCamera().rotateToYaw(0);
 	}
 	
 	public void checkForMods() {
@@ -204,41 +198,55 @@ public class Script extends AbstractScript implements MessageListener {
 		}
 		
 		if (!getTrade().isOpen()) { //if the trade is not open
-			log("trade is not open");
+			if (Config.EXTREME_DEBUGGING) {
+				log("trade is not open");
+			}
 			if (target.getAnimation() == -1) { //and out master isn't busy
-				log("master is not busy");
+				if (Config.EXTREME_DEBUGGING) {
+					log("master is not busy");
+				}
 				if (lastTrade.elapsed() > Config.TRADE_COOLDOWN || skipFirstTradeWait) { //and we aren't spamming the master
 					if (skipFirstTradeWait) {
 						skipFirstTradeWait = false;
 					}
-					log("we're passed countdown");
+					if (Config.EXTREME_DEBUGGING) {
+						log("we're passed countdown");
+					}
 					if (getTrade().tradeWithPlayer(target.getName())) { //we can try to trade master
-						log("we try to trade master");
+						if (Config.EXTREME_DEBUGGING) {
+							log("we try to trade master");
+						}
 						lastTrade.reset();	//reset timer
 						acc1 = false;
 						acc2 = false;
-						Misc.smallSleep();	//sleep on that thought
+						smallSleep();	//sleep on that thought
 					}
 				}
 			}
 		} else if (getTrade().isOpen(1)) { //if the trade(1) is open
 			if (!getTrade().contains(true, 1, "Pure essence")) {
 				if (getTrade().addItem("Pure essence", Config.ESSENCE_TO_WITHDRAW)) {
-					log("Attempting to trade "+Config.ESSENCE_TO_WITHDRAW+" x Pure Essence");
-					Misc.smallSleep();
+					if (Config.EXTREME_DEBUGGING) {
+						log("Attempting to trade "+Config.ESSENCE_TO_WITHDRAW+" x Pure Essence");
+					}
+					smallSleep();
 				}
 			}
 			
 			if (getTrade().acceptTrade() && !acc1) { // accept trade
-				log("Accepting trade (1)");
+				if (Config.EXTREME_DEBUGGING) {
+					log("Accepting trade (1)");
+				}
 				acc1 = true;
-				Misc.medSleep();
+				medSleep();
 			}
 		} else if (getTrade().isOpen(2) && !acc2) { //if the trade(2) is open
 			if (getTrade().acceptTrade()) { // accept trade
-				log("Accepting trade (2)");
+				if (Config.EXTREME_DEBUGGING) {
+					log("Accepting trade (2)");
+				}
 				acc2 = true;
-				Misc.longSleep();
+				medSleep();
 			}
 		}
 		
@@ -263,23 +271,58 @@ public class Script extends AbstractScript implements MessageListener {
 	public void handleBanking() {
 		if (!getBank().isOpen()) {
 			getBank().openClosest();
-			Misc.smallSleep();
+			medSleep();
 		} else { //bank is open
 			if (!getBank().placeHoldersEnabled()) {
 				getBank().togglePlaceholders(true);
-				Misc.smallSleep();
+				smallSleep();
 			}
 			if (getBank().getWithdrawMode() == BankMode.NOTE) {
 				getBank().setWithdrawMode(BankMode.ITEM);
-				Misc.smallSleep();
+				smallSleep();
 			}
-			getBank().depositAllItems();
-			Misc.smallSleep();
+			if (!getInventory().isEmpty()) {
+				getBank().depositAllItems();
+				smallSleep();
+			}
+			smallSleep();
 			getBank().withdraw("Pure essence", Config.ESSENCE_TO_WITHDRAW);
-			Misc.smallSleep();
-			getBank().close();
-			Misc.smallSleep();
+			//smallSleep();
+			//getBank().close();
+			medSleep();
 		}
+	}
+	
+	/**
+	 * Useful for small sleeps
+	 * @return	an int between 200 and 600
+	 */
+	public static void smallSleep() {
+		sleep(Calculations.random(200, 600));
+	}
+	
+	/**
+	 * Useful for medium sleeps
+	 * @return	an int between 600 and 1400
+	 */
+	public static void medSleep() {
+		sleep(Calculations.random(600, 1400));
+	}
+	
+	/**
+	 * Useful for long sleeps
+	 * @return	an int between 1400 and 4500
+	 */
+	public static void longSleep() {
+		sleep(Calculations.random(1400, 4500)); 
+	}
+	
+	/**
+	 * Useful for a small afk
+	 * @return an int between 3500 and 6000
+	 */
+	public static void smallAfkSleep() {
+		sleep(Calculations.random(3500, 6000));
 	}
 	
 

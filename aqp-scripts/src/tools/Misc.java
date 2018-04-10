@@ -5,7 +5,6 @@ import java.util.Date;
 import java.util.List;
 
 import org.dreambot.api.Client;
-import org.dreambot.api.methods.Calculations;
 import org.dreambot.api.wrappers.interactive.Player;
 
 /**
@@ -117,36 +116,6 @@ public abstract class Misc {
 		return new SimpleDateFormat("MMM-dd-yyyy '@' HH:mm").format(new Date(System.currentTimeMillis()));
 	}
 	
-	/**
-	 * Useful for small sleeps
-	 * @return	an int between 200 and 600
-	 */
-	public static int smallSleep() {
-		return Calculations.random(200, 600);
-	}
 	
-	/**
-	 * Useful for medium sleeps
-	 * @return	an int between 600 and 1400
-	 */
-	public static int medSleep() {
-		return Calculations.random(600, 1400);
-	}
-	
-	/**
-	 * Useful for long sleeps
-	 * @return	an int between 1400 and 4500
-	 */
-	public static int longSleep() {
-		return Calculations.random(1400, 4500); 
-	}
-	
-	/**
-	 * Useful for a small afk
-	 * @return an int between 3500 and 6000
-	 */
-	public static int smallAfkSleep() {
-		return Calculations.random(3500, 6000);
-	}
 
 }
