@@ -5,6 +5,7 @@ import java.util.Date;
 import java.util.List;
 
 import org.dreambot.api.Client;
+import org.dreambot.api.methods.Calculations;
 import org.dreambot.api.wrappers.interactive.Player;
 
 /**
@@ -114,6 +115,14 @@ public abstract class Misc {
 	 */
 	public static String getTimeStamp() { 
 		return new SimpleDateFormat("MMM-dd-yyyy '@' HH:mm").format(new Date(System.currentTimeMillis()));
+	}
+	
+	/**
+	 * This will return an int between 300 and 600, useful for small sleeps
+	 * @return	an int between 300 and 600
+	 */
+	public static int smallSleep() {
+		return Calculations.random(300, 600);
 	}
 
 }

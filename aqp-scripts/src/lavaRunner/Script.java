@@ -1,10 +1,9 @@
-package lava;
+package lavaRunner;
 
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.Graphics2D;
 
-import org.dreambot.api.methods.Calculations;
 import org.dreambot.api.script.AbstractScript;
 import org.dreambot.api.script.Category;
 import org.dreambot.api.script.ScriptManifest;
@@ -30,12 +29,12 @@ public class Script extends AbstractScript {
 	public int onLoop() {
 
 		if (!getClient().isLoggedIn()) {
-			return 600;
+			return Misc.smallSleep();
 		}
 		
 		Misc.printDev("Current time: "+Misc.getTimeStamp());
 
-		return Calculations.random(300, 600);
+		return Misc.smallSleep();
 	}
 
 	@Override
