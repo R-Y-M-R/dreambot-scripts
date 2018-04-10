@@ -4,6 +4,7 @@ import java.awt.Color;
 import java.awt.Font;
 import java.awt.Graphics2D;
 
+import org.dreambot.api.methods.Calculations;
 import org.dreambot.api.methods.container.impl.bank.BankMode;
 import org.dreambot.api.methods.map.Area;
 import org.dreambot.api.methods.map.Tile;
@@ -32,11 +33,12 @@ public class Script extends AbstractScript {
 
 	@Override
 	public void onStart() {
-		Misc.printDev("Started Lava Runner at "+Misc.getTimeStamp());
+		Misc.printDev("Started Lava Runner: "+Misc.getTimeStamp());
 	}
 
 	@Override
 	public int onLoop() {
+		Calculations.random(800, 1200);
 
 		//must be logged in
 		if (!getClient().isLoggedIn()) {
@@ -94,16 +96,36 @@ public class Script extends AbstractScript {
 				//so, bank
 				handleBanking();
 			}
-		//we're in the bank area, but don't need to bank
-		} else if (containsLocalPlayer(bankArea)) {
-			getWalking().walk(outerAltarArea.getCenter());
+		//don't need to bank
+		} else {
+			if (!containsLocalPlayer(outerAltarArea) && !containsLocalPlayer(innerAltarArea)) { //if we not inside any altaer
+				getWalking().walk(outerAltarArea.getCenter());
+			}
+			
+			if (containsLocalPlayer(outerAltarArea)){											//if we're inside the outside altar area
+				if (Config.EXTREME_DEBUGGING) {
+					Misc.smallSleep();
+					log("We want to use the Ruins!");
+				}
+				GameObject ruins = getGameObjects().closest("Mysterious ruins");
+				if (ruins != null) {
+					ruins.interact("Enter");													//enter the ruins
+					Misc.smallSleep();
+				}
+			}
+			
+			if (containsLocalPlayer(innerAltarArea)) {											//if we're in the inner area
+				if (Config.EXTREME_DEBUGGING) {
+					Misc.smallSleep();
+					log("We would handle trading here.");
+				}
+			} 
+			
 			
 		}
 		
-		
-		Misc.printDev("Current time: "+Misc.getTimeStamp());
 
-		return Misc.smallSleep();
+		return 100;
 	}
 	
 	public boolean needToBank() {
@@ -145,7 +167,7 @@ public class Script extends AbstractScript {
 
 	@Override
 	public void onExit() {
-
+		Misc.printDev("Ended: "+Misc.getTimeStamp());
 	}
 
 	public void onPaint(Graphics2D g) {
