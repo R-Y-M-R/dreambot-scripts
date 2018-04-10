@@ -7,9 +7,9 @@ package lavaRunner;
 public class Config {
 	
 	/**
-	 * The amount of essence each mule should withdraw. Must be <= 28
+	 * The amount of essence each mule should withdraw. Expected to be <= 28, probably 25
 	 */
-	public static final int ESSENCE_TO_WITHDRAW = 27; 
+	public static final int ESSENCE_TO_WITHDRAW = 25; 
 	
 	/**
 	 * The minimum amount of essence required in inventory for a trade to occur.

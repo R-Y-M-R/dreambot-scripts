@@ -152,14 +152,11 @@ public class Script extends AbstractScript {
 	}
 	
 	public void checkForMods() {
-		Player p = getPlayers().all(f -> f != null && f.getName().contains("Mod")).get(0);
-		String mod = "Mod";
-		if (p != null) {
-			mod = p.getName();
+		if (!getPlayers().all(f -> f != null && f.getName().contains("Mod")).isEmpty()) {
+			log("We just found a JMod! Logged out, quickly... Time: " + Misc.getTimeStamp());
+			getTabs().logout();
+			stop();
 		}
-		log("We just found "+mod+"! Script session suspended. Time: "+Misc.getTimeStamp());
-		getTabs().logout();
-		stop();
 	}
 	
 	
@@ -187,13 +184,16 @@ public class Script extends AbstractScript {
 			}
 		} else if (getTrade().isOpen(1)) { //if the trade(1) is open
 			if (getTrade().addItem("Pure essence", Config.ESSENCE_TO_WITHDRAW)) {
+				log("Attempting to trade "+Config.ESSENCE_TO_WITHDRAW+" x Pure Essence");
 				Misc.smallSleep();
 			}
 			if (getTrade().acceptTrade()) { // accept trade
+				log("Accepting trade (1)");
 				Misc.medSleep();
 			}
 		} else if (getTrade().isOpen(2)) { //if the trade(2) is open
 			if (getTrade().acceptTrade()) { // accept trade
+				log("Accepting trade (2)");
 				Misc.longSleep();
 			}
 		}
