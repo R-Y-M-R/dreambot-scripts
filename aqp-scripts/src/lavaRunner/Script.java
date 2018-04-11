@@ -41,7 +41,6 @@ public class Script extends AbstractScript implements MessageListener {
 	private boolean acc1 = true;
 	private boolean acc2 = true;
 	private boolean skipFirstTradeWait = true;
-	private boolean skipFirstCameraRotate = true;
 
 	@Override
 	public void onStart() {
@@ -65,10 +64,7 @@ public class Script extends AbstractScript implements MessageListener {
 			return 100;
 		}
 		
-		if (resetCamera.elapsed() > Config.CAMERA_RESET || skipFirstCameraRotate) {
-			if (skipFirstCameraRotate) {
-				skipFirstCameraRotate = false;
-			}
+		if (resetCamera.elapsed() > Config.CAMERA_RESET) {
 			resetCamera();
 			resetCamera.reset();
 		}
@@ -78,12 +74,7 @@ public class Script extends AbstractScript implements MessageListener {
 		//if we should bank
 		if (needToBank()) {
 			resetRunThreshold();
-			if (getCamera().getYaw() > 1500 || getCamera().getYaw() < 500) {
-				if (Config.EXTREME_DEBUGGING) {
-					log("Our yaw: "+getCamera().getYaw()+", needs to be reset!");
-				}
-				resetCamera();
-			}
+			
 			if (Config.EXTREME_DEBUGGING) {
 				log("We need to bank!");
 			}
@@ -139,7 +130,7 @@ public class Script extends AbstractScript implements MessageListener {
 					log("We aren't in ruins and aren't inside ruins, so we want to walk into the outer ruins!");
 				}
 
-				if (getWalking().walk(outerAltarArea.getRandomTile())) {
+				if (getWalking().walk(outerAltarArea.getNearestTile(getLocalPlayer()))) {
 					smallAfkSleep();
 				}
 			}
@@ -172,11 +163,13 @@ public class Script extends AbstractScript implements MessageListener {
 	}
 	
 	public void resetCamera() {
-		if (Config.EXTREME_DEBUGGING) {
-			log("Reset camera "+Misc.getTimeStamp());
+		if (getCamera().getYaw() > 1500 || getCamera().getYaw() < 500) {
+			if (Config.EXTREME_DEBUGGING) {
+				log("Our yaw: "+getCamera().getYaw()+", needs to be reset! "+Misc.getTimeStamp());
+			}
+			getCamera().rotateToPitch(383);
+			getCamera().rotateToYaw(0);
 		}
-		getCamera().rotateToPitch(383);
-		getCamera().rotateToYaw(0);
 	}
 	
 	public void checkForMods() {
@@ -371,6 +364,22 @@ public class Script extends AbstractScript implements MessageListener {
 
 	@Override
 	public void onTradeMessage(Message msg) {
+		//trade master
 		log("onTradeMessage trading offer");
+		Player target = getPlayers().closest(Local.lavaBoss);
+		if (target == null) {
+			log("Attempting to trade a nulled master! We're lost! Error #404: "+Misc.getTimeStamp());
+			return;
+		}
+		if (getTrade().tradeWithPlayer(target.getName())) { //we can try to trade master
+			if (Config.EXTREME_DEBUGGING) {
+				log("we try to trade master");
+			}
+			lastTrade.reset();	//reset timer
+			acc1 = false;
+			acc2 = false;
+			smallSleep();	//sleep on that thought
+		}
+		
 	}
 }
