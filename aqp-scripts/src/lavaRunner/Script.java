@@ -8,6 +8,8 @@ import org.dreambot.api.methods.Calculations;
 import org.dreambot.api.methods.container.impl.bank.BankMode;
 import org.dreambot.api.methods.map.Area;
 import org.dreambot.api.methods.map.Tile;
+import org.dreambot.api.methods.walking.path.impl.LocalPath;
+import org.dreambot.api.methods.walking.pathfinding.impl.astar.AStarPathFinder;
 import org.dreambot.api.script.AbstractScript;
 import org.dreambot.api.script.Category;
 import org.dreambot.api.script.ScriptManifest;
@@ -32,7 +34,9 @@ public class Script extends AbstractScript implements MessageListener {
 	private final Area innerAltarArea = new Area(2560, 4860, 2600, 4820, 0);	//The area of the (inner) altar
 	//private final Area outerAltarArea = new Area(3317, 3259, 3309, 3251, 0);	//The area of the (outer) altar
 	private final Area outerAltarArea = new Area(new Tile(3317, 3259), new Tile(3309, 3251));	//The area of the (outer) altar
+	private final Area tiltCameraArea = new Area(new Tile(3335, 3268), new Tile(3308, 3232));
 	private final Tile bankTile = new Tile(3381, 3268, 0);						//The specific tile to use in the bank
+	private final Tile altarTile = new Tile(3310, 3252, 0);
 	private final Tile exitAltarTile = new Tile(2575, 4849, 0);
 	private Timer t = new Timer();		//A timer
 	private Timer lastTrade = new Timer();
@@ -41,6 +45,25 @@ public class Script extends AbstractScript implements MessageListener {
 	private boolean acc1 = true;
 	private boolean acc2 = true;
 	private boolean skipFirstTradeWait = true;
+	
+	
+	public boolean walkPathToBank() {
+		log("a*Path to bank");
+		AStarPathFinder pf = getWalking().getAStarPathFinder();
+		Tile start = altarTile;
+		Tile end = bankTile;
+		LocalPath<Tile> path = pf.calculate(start, end);
+		return path.walk();
+	}
+	
+	public boolean walkPathToAltar() {
+		log("a*Path to altar");
+		AStarPathFinder pf = getWalking().getAStarPathFinder();
+		Tile start = bankTile;
+		Tile end = altarTile;
+		LocalPath<Tile> path = pf.calculate(start, end);
+		return path.walk();
+	}
 
 	@Override
 	public void onStart() {
@@ -63,6 +86,10 @@ public class Script extends AbstractScript implements MessageListener {
 			smallSleep();
 			return 100;
 		}
+		
+		/*if (tiltCameraArea.contains(getLocalPlayer())) {
+			turnCamera();
+		}*/
 		
 		if (resetCamera.elapsed() > Config.CAMERA_RESET) {
 			resetCamera();
@@ -88,7 +115,7 @@ public class Script extends AbstractScript implements MessageListener {
 					log("We're trying to exit the inner altar!");
 				}
 				if (getWalking().walk(exitAltarTile)) {
-					smallAfkSleep();
+					smallSleep();
 				}
 				smallSleep();
 				
@@ -98,7 +125,7 @@ public class Script extends AbstractScript implements MessageListener {
 				GameObject portal = getGameObjects().closest("Portal");
 				if (portal != null) {
 					if (portal.interact("Use")) {
-						longSleep();
+						medSleep();
 					}
 					smallSleep();
 				}
@@ -112,8 +139,8 @@ public class Script extends AbstractScript implements MessageListener {
 				if (Config.EXTREME_DEBUGGING) {
 					log("So we'll walk to the bank!");
 				}
-				if (getWalking().walk(bankTile)) {
-					smallAfkSleep();
+				if (walkPathToBank()) {
+					medSleep();
 				}
 			//we are in the bank
 			} else {
@@ -130,8 +157,8 @@ public class Script extends AbstractScript implements MessageListener {
 					log("We aren't in ruins and aren't inside ruins, so we want to walk into the outer ruins!");
 				}
 
-				if (getWalking().walk(outerAltarArea.getNearestTile(getLocalPlayer()))) {
-					smallAfkSleep();
+				if (walkPathToAltar()) {
+					medSleep();
 				}
 			}
 			
@@ -142,7 +169,7 @@ public class Script extends AbstractScript implements MessageListener {
 				GameObject ruins = getGameObjects().closest("Mysterious ruins");
 				if (ruins != null) {
 					if (ruins.interact("Enter")) { //enter the ruins
-						longSleep();
+						medSleep();
 					}
 					smallSleep();
 				}
@@ -162,13 +189,24 @@ public class Script extends AbstractScript implements MessageListener {
 		return 100;
 	}
 	
+	public void turnCamera() {
+		getCamera().rotateToYaw(Calculations.random(1, 10));
+		getCamera().rotateToPitch(383);
+
+	}
+	
 	public void resetCamera() {
 		if (getCamera().getYaw() > 1500 || getCamera().getYaw() < 500) {
 			if (Config.EXTREME_DEBUGGING) {
 				log("Our yaw: "+getCamera().getYaw()+", needs to be reset! "+Misc.getTimeStamp());
 			}
-			getCamera().rotateToPitch(383);
-			getCamera().rotateToYaw(0);
+			getCamera().rotateToYaw(Calculations.random(1, 10));
+			if (getCamera().getPitch() < 200) {
+				if (Config.EXTREME_DEBUGGING) {
+					log("Our pitch: "+getCamera().getPitch()+", needs to be reset! "+Misc.getTimeStamp());
+				}
+				getCamera().rotateToPitch(383);
+			}
 		}
 	}
 	
@@ -235,7 +273,7 @@ public class Script extends AbstractScript implements MessageListener {
 					log("Accepting trade (1)");
 				}
 				acc1 = true;
-				medSleep();
+				smallSleep();
 			}
 		} else if (getTrade().isOpen(2) && !acc2) { //if the trade(2) is open
 			if (getTrade().acceptTrade()) { // accept trade
@@ -243,7 +281,7 @@ public class Script extends AbstractScript implements MessageListener {
 					log("Accepting trade (2)");
 				}
 				acc2 = true;
-				medSleep();
+				smallSleep();
 			}
 		}
 		
@@ -282,11 +320,10 @@ public class Script extends AbstractScript implements MessageListener {
 				getBank().depositAllItems();
 				smallSleep();
 			}
-			smallSleep();
 			getBank().withdraw("Pure essence", Config.ESSENCE_TO_WITHDRAW);
 			//smallSleep();
 			//getBank().close();
-			medSleep();
+			longSleep();
 		}
 	}
 	
