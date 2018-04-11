@@ -30,7 +30,7 @@ import tools.Misc;
  * @author Vlad https://dreambot.org/forums/index.php/user/20-vlad/
  */
 
-@ScriptManifest(name = "Lava Runner", author = "A q p", description = "[DEV] Brings lava runes to the master.", version = 1.3, category = Category.RUNECRAFTING)
+@ScriptManifest(name = "Lava Runner", author = "A q p", description = "[DEV] Brings lava runes to the master. Now with Ring of Dueling support.", version = 1.4, category = Category.RUNECRAFTING)
 public class Script extends AbstractScript implements MessageListener {
 	
 	//Variables
