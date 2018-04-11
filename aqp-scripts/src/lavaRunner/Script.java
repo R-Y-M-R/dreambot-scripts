@@ -3,6 +3,8 @@ package lavaRunner;
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.Graphics2D;
+import java.util.LinkedList;
+import java.util.List;
 
 import org.dreambot.api.methods.Calculations;
 import org.dreambot.api.methods.container.impl.bank.BankMode;
@@ -17,6 +19,7 @@ import org.dreambot.api.script.listener.MessageListener;
 import org.dreambot.api.utilities.Timer;
 import org.dreambot.api.wrappers.interactive.GameObject;
 import org.dreambot.api.wrappers.interactive.Player;
+import org.dreambot.api.wrappers.items.Item;
 import org.dreambot.api.wrappers.widgets.message.Message;
 
 import tools.Local;
@@ -41,13 +44,46 @@ public class Script extends AbstractScript implements MessageListener {
 	private Timer t = new Timer();		//A timer
 	private Timer lastTrade = new Timer();
 	private Timer resetCamera = new Timer();
-	
-	private boolean acc1 = true;
-	private boolean acc2 = true;
 	private boolean skipFirstTradeWait = true;
 	
+	private void printOthersEquipment(Player target) {
+		List<String> list = this.getOthersEquipment(target);
+		log("---" + target.getName() + "---");
+		for (String s : list) {
+			log(s);
+		}
+		log("---/" + target.getName() + "---");
+
+		if (!innerAltarArea.contains(target)) {
+			log("The master is not inside the altar area. Eror #405");
+			return;
+		}
+	}
 	
-	public boolean walkPathToBank() {
+	private boolean wearingItem(Player target, String itemName) {
+		List<String> list = this.getOthersEquipment(target);
+		for (String s : list) {
+			if (s.equals(itemName)) {
+				return true;
+			}
+		}
+		return false;
+	}
+	
+	private List<String> getOthersEquipment(Player p) {
+        List<String> equipmentList = new LinkedList<String>();
+        if(p != null) {
+            int[] equipment = p.getComposite().getApperance();
+            for (int i = 0; i < equipment.length; i++) {
+                if (equipment[i] - 512 > 0) {
+                    equipmentList.add(new Item(equipment[i]-512, 0, getClient().getInstance()).getName());
+                }
+            }
+        }
+        return equipmentList;
+    }
+	
+	private boolean walkPathToBank() {
 		log("Dfjk*path to bank");
 		DijkstraPathFinder df = getWalking().getDijPathFinder();
 		Tile start = altarTile;
@@ -56,7 +92,7 @@ public class Script extends AbstractScript implements MessageListener {
 		return path.walk();
 	}
 	
-	/*public boolean walkPathToAltar() {
+	/*private boolean walkPathToAltar() {
 		log("a*Path to altar");
 		AStarPathFinder pf = getWalking().getAStarPathFinder();
 		Tile start = bankTile;
@@ -73,7 +109,7 @@ public class Script extends AbstractScript implements MessageListener {
 		resetRunThreshold();
 	}
 	
-	public void resetRunThreshold() {
+	private void resetRunThreshold() {
 		getWalking().setRunThreshold(Calculations.random(40, 50));
 	}
 
@@ -154,7 +190,7 @@ public class Script extends AbstractScript implements MessageListener {
 		} else {
 			if (!outerAltarArea.contains(getLocalPlayer()) && !innerAltarArea.contains(getLocalPlayer())) { //if we not inside any altaer
 				if (Config.EXTREME_DEBUGGING) {
-					log("We aren't in ruins and aren't inside ruins, so we want to walk into the outer ruins!");
+					log("We aren't in ruins and aren't outside ruins, so we want to walk to outer ruins!");
 				}
 
 				if (getWalking().walk(altarTile)) {
@@ -175,7 +211,7 @@ public class Script extends AbstractScript implements MessageListener {
 				}
 			}
 			
-			if (innerAltarArea.contains(getLocalPlayer())) {											//if we're in the inner area
+			if (innerAltarArea.contains(getLocalPlayer()) && getInventory().count("Pure essence") > Config.NEED_BANK_THRESHOLD) {											//if we're in the inner area
 				if (Config.EXTREME_DEBUGGING) {
 					log("We would handle trading here.");
 				}
@@ -189,13 +225,13 @@ public class Script extends AbstractScript implements MessageListener {
 		return 100;
 	}
 	
-	public void turnCamera() {
+	/*private void turnCamera() {
 		getCamera().rotateToYaw(Calculations.random(1, 10));
 		getCamera().rotateToPitch(383);
 
-	}
+	}*/
 	
-	public void resetCamera() {
+	private void resetCamera() {
 		if (getCamera().getYaw() > 1500 || getCamera().getYaw() < 500) {
 			if (Config.EXTREME_DEBUGGING) {
 				log("Our yaw: "+getCamera().getYaw()+", needs to be reset! "+Misc.getTimeStamp());
@@ -210,7 +246,7 @@ public class Script extends AbstractScript implements MessageListener {
 		}
 	}
 	
-	public void checkForMods() {
+	private void checkForMods() {
 		if (!getPlayers().all(f -> f != null && f.getName().contains("Mod")).isEmpty()) {
 			log("We just found a JMod! Logged out, quickly... Time: " + Misc.getTimeStamp());
 			getTabs().logout();
@@ -219,19 +255,12 @@ public class Script extends AbstractScript implements MessageListener {
 	}
 	
 	
-	public void handleTrading() {
+	private void handleTrading() {
 		Player target = getPlayers().closest(Local.lavaBoss);
-		//(p -> p != null && p.getName().equals(Local.lavaBoss)).get(0);
 		if (target == null) {
 			log("Attempting to trade a nulled master! We're lost! Error #404: "+Misc.getTimeStamp());
 			return;
 		}
-		
-		if (!innerAltarArea.contains(target)) {
-			log("The master is not inside the altar area. Eror #405");
-			return;
-		}
-		
 		if (!getTrade().isOpen()) { //if the trade is not open
 			if (Config.EXTREME_DEBUGGING) {
 				log("trade is not open");
@@ -252,14 +281,16 @@ public class Script extends AbstractScript implements MessageListener {
 							log("we try to trade master");
 						}
 						lastTrade.reset();	//reset timer
-						acc1 = false;
-						acc2 = false;
 						smallSleep();	//sleep on that thought
 					}
 				}
 			}
-		} else if (getTrade().isOpen(1)) { //if the trade(1) is open
+		} 
+		if (getTrade().isOpen(1)) { //if the trade(1) is open
 			if (!getTrade().contains(true, 1, "Pure essence")) {
+				if (this.wearingItem(target, "Binding necklace")) {
+					log("Master is wearing a binding necklace.");
+				}
 				if (getTrade().addItem("Pure essence", Config.ESSENCE_TO_WITHDRAW)) {
 					if (Config.EXTREME_DEBUGGING) {
 						log("Attempting to trade "+Config.ESSENCE_TO_WITHDRAW+" x Pure Essence");
@@ -268,22 +299,23 @@ public class Script extends AbstractScript implements MessageListener {
 				}
 			}
 			
-			if (getTrade().acceptTrade() && !acc1) { // accept trade
+			if (getTrade().acceptTrade()) { // accept trade
 				if (Config.EXTREME_DEBUGGING) {
 					log("Accepting trade (1)");
 				}
-				acc1 = true;
 				smallSleep();
 			}
-		} else if (getTrade().isOpen(2) && !acc2) { //if the trade(2) is open
+		}
+		
+		if (getTrade().isOpen(2)) { //if the trade(2) is open
 			if (getTrade().acceptTrade()) { // accept trade
 				if (Config.EXTREME_DEBUGGING) {
 					log("Accepting trade (2)");
 				}
-				acc2 = true;
 				smallSleep();
 			}
 		}
+		
 		
 
 		
@@ -293,7 +325,7 @@ public class Script extends AbstractScript implements MessageListener {
 		
 	}
 	
-	public boolean needToBank() {
+	private boolean needToBank() {
 		if (getTrade().isOpen()) {
 			return false;
 		}
@@ -303,7 +335,7 @@ public class Script extends AbstractScript implements MessageListener {
 		return false;
 	}
 	
-	public void handleBanking() {
+	private void handleBanking() {
 		if (!getBank().isOpen()) {
 			if (getBank().openClosest()) {
 				smallSleep();
@@ -414,8 +446,6 @@ public class Script extends AbstractScript implements MessageListener {
 				log("we try to trade master");
 			}
 			lastTrade.reset();	//reset timer
-			acc1 = false;
-			acc2 = false;
 			smallSleep();	//sleep on that thought
 		}
 		
