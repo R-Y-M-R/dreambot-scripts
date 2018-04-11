@@ -30,7 +30,7 @@ import tools.Misc;
  * @author Vlad https://dreambot.org/forums/index.php/user/20-vlad/
  */
 
-@ScriptManifest(name = "Lava Runner", author = "A q p", description = "[DEV] Brings lava runes to the master. Now with Ring of Dueling support.", version = 1.4, category = Category.RUNECRAFTING)
+@ScriptManifest(name = "Lava Runner", author = "A q p", description = "[DEV] Brings lava runes to the master. Now with Ring of Dueling support.", version = 1.6, category = Category.RUNECRAFTING)
 public class Script extends AbstractScript implements MessageListener {
 	
 	//Variables
@@ -219,9 +219,18 @@ public class Script extends AbstractScript implements MessageListener {
 				if (Config.EXTREME_DEBUGGING) {
 					log("We aren't in ruins and aren't outside ruins, so we want to walk to outer ruins!");
 				}
-
-				if (getWalking().walk(altarTile)) {
-					smallSleep();
+				if (Config.RING_OF_DUELING && this.castleWarsArea.contains(getLocalPlayer())) {
+					if (getBank().openClosest()) {
+						smallSleep();
+					}
+					if (getBank().depositAllItems()) {
+						smallSleep();
+					}
+					getBank().close();
+				} else {
+					if (getWalking().walk(altarTile)) {
+						smallSleep();
+					}
 				}
 			}
 			
