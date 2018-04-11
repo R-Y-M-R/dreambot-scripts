@@ -9,7 +9,7 @@ import org.dreambot.api.methods.container.impl.bank.BankMode;
 import org.dreambot.api.methods.map.Area;
 import org.dreambot.api.methods.map.Tile;
 import org.dreambot.api.methods.walking.path.impl.LocalPath;
-import org.dreambot.api.methods.walking.pathfinding.impl.astar.AStarPathFinder;
+import org.dreambot.api.methods.walking.pathfinding.impl.dijkstra.DijkstraPathFinder;
 import org.dreambot.api.script.AbstractScript;
 import org.dreambot.api.script.Category;
 import org.dreambot.api.script.ScriptManifest;
@@ -30,14 +30,14 @@ import tools.Misc;
 public class Script extends AbstractScript implements MessageListener {
 	
 	//Variables
-	private final Area bankArea = new Area(3380, 3273, 3384, 3267, 0);			//The area of the bank
-	private final Area innerAltarArea = new Area(2560, 4860, 2600, 4820, 0);	//The area of the (inner) altar
-	//private final Area outerAltarArea = new Area(3317, 3259, 3309, 3251, 0);	//The area of the (outer) altar
-	private final Area outerAltarArea = new Area(new Tile(3317, 3259), new Tile(3309, 3251));	//The area of the (outer) altar
-	private final Area tiltCameraArea = new Area(new Tile(3335, 3268), new Tile(3308, 3232));
 	private final Tile bankTile = new Tile(3381, 3268, 0);						//The specific tile to use in the bank
 	private final Tile altarTile = new Tile(3310, 3252, 0);
 	private final Tile exitAltarTile = new Tile(2575, 4849, 0);
+	private final Tile awayFromRampTile = new Tile(3324, 3259, 0);
+	private final Area bankArea = new Area(3380, 3273, 3384, 3267, 0);			//The area of the bank
+	private final Area innerAltarArea = new Area(2560, 4860, 2600, 4820, 0);	//The area of the (inner) altar
+	private final Area outerAltarArea = new Area(new Tile(3317, 3259), new Tile(3309, 3251));	//The area of the (outer) altar
+	private final Area badCameraArea = new Area(altarTile, awayFromRampTile);
 	private Timer t = new Timer();		//A timer
 	private Timer lastTrade = new Timer();
 	private Timer resetCamera = new Timer();
@@ -48,22 +48,22 @@ public class Script extends AbstractScript implements MessageListener {
 	
 	
 	public boolean walkPathToBank() {
-		log("a*Path to bank");
-		AStarPathFinder pf = getWalking().getAStarPathFinder();
+		log("Dfjk*path to bank");
+		DijkstraPathFinder df = getWalking().getDijPathFinder();
 		Tile start = altarTile;
-		Tile end = bankTile;
-		LocalPath<Tile> path = pf.calculate(start, end);
+		Tile end = awayFromRampTile;
+		LocalPath<Tile> path = df.calculate(start, end);
 		return path.walk();
 	}
 	
-	public boolean walkPathToAltar() {
+	/*public boolean walkPathToAltar() {
 		log("a*Path to altar");
 		AStarPathFinder pf = getWalking().getAStarPathFinder();
 		Tile start = bankTile;
 		Tile end = altarTile;
 		LocalPath<Tile> path = pf.calculate(start, end);
 		return path.walk();
-	}
+	}*/
 
 	@Override
 	public void onStart() {
@@ -134,12 +134,15 @@ public class Script extends AbstractScript implements MessageListener {
 			if (!bankArea.contains(getLocalPlayer())) {
 				if (Config.EXTREME_DEBUGGING) {
 					log("We are not in the bank");
-				}
-				//walk to the bank.
-				if (Config.EXTREME_DEBUGGING) {
 					log("So we'll walk to the bank!");
 				}
-				if (walkPathToBank()) {
+				//walk to the bank.
+				if (badCameraArea.contains(getLocalPlayer())) {
+					if (walkPathToBank()) {
+						smallSleep();
+					}
+				}
+				if (getWalking().walk(bankTile)) {
 					medSleep();
 				}
 			//we are in the bank
@@ -157,7 +160,7 @@ public class Script extends AbstractScript implements MessageListener {
 					log("We aren't in ruins and aren't inside ruins, so we want to walk into the outer ruins!");
 				}
 
-				if (walkPathToAltar()) {
+				if (getWalking().walk(altarTile)) {
 					medSleep();
 				}
 			}
@@ -320,6 +323,7 @@ public class Script extends AbstractScript implements MessageListener {
 				getBank().depositAllItems();
 				smallSleep();
 			}
+			smallSleep();
 			getBank().withdraw("Pure essence", Config.ESSENCE_TO_WITHDRAW);
 			//smallSleep();
 			//getBank().close();
