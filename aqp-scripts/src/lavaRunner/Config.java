@@ -30,5 +30,10 @@ public class Config {
 	 * Will print additional debug messages.
 	 */
 	public static final boolean EXTREME_DEBUGGING = true;
+	
+	/**
+	 * Will mule and offer Binding necklaces to master when they are out.
+	 */
+	public static final boolean MULE_BINDINGS = true;
 
 }

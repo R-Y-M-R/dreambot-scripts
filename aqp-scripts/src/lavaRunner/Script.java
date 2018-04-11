@@ -288,8 +288,13 @@ public class Script extends AbstractScript implements MessageListener {
 		} 
 		if (getTrade().isOpen(1)) { //if the trade(1) is open
 			if (!getTrade().contains(true, 1, "Pure essence")) {
-				if (this.wearingItem(target, "Binding necklace")) {
-					log("Master is wearing a binding necklace.");
+				if (Config.MULE_BINDINGS) {
+					if (!wearingItem(target, "Binding necklace")) {
+						log("Master is not wearing a binding necklace.");
+						if (this.getInventory().contains("Binding necklace")) {
+							this.getTrade().addItem("Binding necklace", 1);
+						}
+					}
 				}
 				if (getTrade().addItem("Pure essence", Config.ESSENCE_TO_WITHDRAW)) {
 					if (Config.EXTREME_DEBUGGING) {
@@ -329,7 +334,7 @@ public class Script extends AbstractScript implements MessageListener {
 		if (getTrade().isOpen()) {
 			return false;
 		}
-		if (!getInventory().contains("Pure essence") || getInventory().count("Pure essence") < Config.NEED_BANK_THRESHOLD) {
+		if (!getInventory().contains("Pure essence") || getInventory().count("Pure essence") < Config.NEED_BANK_THRESHOLD || getInventory().get("Pure essence").isNoted()) {
 			return true;
 		}
 		return false;
