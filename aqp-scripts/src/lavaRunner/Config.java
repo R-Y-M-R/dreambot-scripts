@@ -24,7 +24,7 @@ public class Config {
 	/**
 	 * The amount of time in between trades with the master.
 	 */
-	public static final long TRADE_COOLDOWN = 5000; //5 seconds = 5000 miliseconds
+	public static final long TRADE_COOLDOWN = 2500; //5 seconds = 5000 miliseconds
 	
 	/**
 	 * Will print additional debug messages.

@@ -26,7 +26,7 @@ import tools.Misc;
  * @author Vlad https://dreambot.org/forums/index.php/user/20-vlad/
  */
 
-@ScriptManifest(name = "Lava Runner", author = "A q p", description = "[DEV] Lava Runner", version = 1, category = Category.RUNECRAFTING)
+@ScriptManifest(name = "Lava Runner", author = "A q p", description = "[DEV] Lava Runner\nNow with better pathing, faster trading.", version = 1.1, category = Category.RUNECRAFTING)
 public class Script extends AbstractScript implements MessageListener {
 	
 	//Variables
@@ -138,11 +138,8 @@ public class Script extends AbstractScript implements MessageListener {
 				}
 				//walk to the bank.
 				if (badCameraArea.contains(getLocalPlayer())) {
-					if (walkPathToBank()) {
-						smallSleep();
-					}
-				}
-				if (getWalking().walk(bankTile)) {
+					walkPathToBank();
+				} else if (getWalking().walk(bankTile)) {
 					medSleep();
 				}
 			//we are in the bank
