@@ -8,6 +8,7 @@ import java.util.List;
 
 import org.dreambot.api.methods.Calculations;
 import org.dreambot.api.methods.container.impl.bank.BankMode;
+import org.dreambot.api.methods.container.impl.equipment.EquipmentSlot;
 import org.dreambot.api.methods.map.Area;
 import org.dreambot.api.methods.map.Tile;
 import org.dreambot.api.methods.walking.path.impl.LocalPath;
@@ -29,7 +30,7 @@ import tools.Misc;
  * @author Vlad https://dreambot.org/forums/index.php/user/20-vlad/
  */
 
-@ScriptManifest(name = "Lava Runner", author = "A q p", description = "[DEV] Lava Runner\nNow with better pathing, faster trading, and responding to trades.", version = 1.2, category = Category.RUNECRAFTING)
+@ScriptManifest(name = "Lava Runner", author = "A q p", description = "[DEV] Brings lava runes to the master.", version = 1.3, category = Category.RUNECRAFTING)
 public class Script extends AbstractScript implements MessageListener {
 	
 	//Variables
@@ -39,8 +40,10 @@ public class Script extends AbstractScript implements MessageListener {
 	private final Tile awayFromRampTile = new Tile(3324, 3259, 0);
 	private final Area bankArea = new Area(3380, 3273, 3384, 3267, 0);			//The area of the bank
 	private final Area innerAltarArea = new Area(2560, 4860, 2600, 4820, 0);	//The area of the (inner) altar
-	private final Area outerAltarArea = new Area(new Tile(3317, 3259), new Tile(3309, 3251));	//The area of the (outer) altar
+	private final Area outerAltarArea = new Area(new Tile(3317, 3259, 0), new Tile(3309, 3251, 0));	//The area of the (outer) altar
 	private final Area badCameraArea = new Area(altarTile, awayFromRampTile);
+	private final Area castleWarsArea = new Area(new Tile(2446, 3097, 0), new Tile(2438, 3082, 0));
+	private final Tile castleWarsBankTile = new Tile(2443, 3083, 0);
 	private Timer t = new Timer();		//A timer
 	private Timer lastTrade = new Timer();
 	private Timer resetCamera = new Timer();
@@ -123,6 +126,13 @@ public class Script extends AbstractScript implements MessageListener {
 			return 100;
 		}
 		
+		if (this.getLocalPlayer().getAnimation() != -1) {
+			if (Config.EXTREME_DEBUGGING) {
+				log("We're waiting because anims.");
+			}
+			return 100;
+		}
+		
 		/*if (tiltCameraArea.contains(getLocalPlayer())) {
 			turnCamera();
 		}*/
@@ -150,7 +160,12 @@ public class Script extends AbstractScript implements MessageListener {
 				if (Config.EXTREME_DEBUGGING) {
 					log("We're trying to exit the inner altar!");
 				}
-				if (getWalking().walk(exitAltarTile)) {
+				if (Config.RING_OF_DUELING && getEquipment().contains(ring -> ring.getName().contains("dueling"))) {
+					log("RoD tp to Castle Wars");
+					if (getEquipment().interact(EquipmentSlot.RING, "Castle Wars")) {
+						longSleep();
+					}
+				} else if (getWalking().walk(exitAltarTile)) {
 					smallSleep();
 				}
 				smallSleep();
@@ -167,7 +182,7 @@ public class Script extends AbstractScript implements MessageListener {
 				}
 			} else
 			//if we are not in the bank,
-			if (!bankArea.contains(getLocalPlayer())) {
+			if (!bankArea.contains(getLocalPlayer()) && !castleWarsArea.contains(getLocalPlayer())) {
 				if (Config.EXTREME_DEBUGGING) {
 					log("We are not in the bank");
 					log("So we'll walk to the bank!");
@@ -188,13 +203,25 @@ public class Script extends AbstractScript implements MessageListener {
 			}
 		//don't need to bank
 		} else {
-			if (!outerAltarArea.contains(getLocalPlayer()) && !innerAltarArea.contains(getLocalPlayer())) { //if we not inside any altaer
+			
+			if (this.getInventory().contains("Ring of dueling(8)") && !getEquipment().contains(ring -> ring.getName().contains("dueling"))) {
+				log("Equipping Ring of Dueling");
+				if (getInventory().interact("Ring of dueling(8)", "Wear")) {
+					smallSleep();
+				}
+			}
+			if (Config.RING_OF_DUELING && getEquipment().contains(ring -> ring.getName().contains("dueling")) && this.castleWarsArea.contains(getLocalPlayer())) {
+				log("RoD tp to Duel Arena");
+				if (getEquipment().interact(EquipmentSlot.RING, "Duel Arena")) {
+					longSleep();
+				}
+			}  else if (!outerAltarArea.contains(getLocalPlayer()) && !innerAltarArea.contains(getLocalPlayer())) { //if we not inside any altaer
 				if (Config.EXTREME_DEBUGGING) {
 					log("We aren't in ruins and aren't outside ruins, so we want to walk to outer ruins!");
 				}
 
 				if (getWalking().walk(altarTile)) {
-					medSleep();
+					smallSleep();
 				}
 			}
 			
@@ -211,7 +238,7 @@ public class Script extends AbstractScript implements MessageListener {
 				}
 			}
 			
-			if (innerAltarArea.contains(getLocalPlayer()) && getInventory().count("Pure essence") > Config.NEED_BANK_THRESHOLD) {											//if we're in the inner area
+			if (innerAltarArea.contains(getLocalPlayer()) && (getInventory().count("Pure essence") > Config.NEED_BANK_THRESHOLD || getTrade().isOpen())) {											//if we're in the inner area
 				if (Config.EXTREME_DEBUGGING) {
 					log("We would handle trading here.");
 				}
@@ -222,7 +249,7 @@ public class Script extends AbstractScript implements MessageListener {
 		}
 		
 
-		return 100;
+		return 200;
 	}
 	
 	/*private void turnCamera() {
@@ -290,15 +317,15 @@ public class Script extends AbstractScript implements MessageListener {
 			if (!getTrade().contains(true, 1, "Pure essence")) {
 				if (Config.MULE_BINDINGS) {
 					if (!wearingItem(target, "Binding necklace")) {
-						log("Master is not wearing a binding necklace.");
+						log("Master is not wearing a binding necklace. Offering ours.");
 						if (this.getInventory().contains("Binding necklace")) {
 							this.getTrade().addItem("Binding necklace", 1);
 						}
 					}
 				}
-				if (getTrade().addItem("Pure essence", Config.ESSENCE_TO_WITHDRAW)) {
+				if (getTrade().addItem("Pure essence", getTrade().contains(true, 1, "Binding necklace") ? Config.ESSENCE_TO_WITHDRAW-1 : Config.ESSENCE_TO_WITHDRAW)) {
 					if (Config.EXTREME_DEBUGGING) {
-						log("Attempting to trade "+Config.ESSENCE_TO_WITHDRAW+" x Pure Essence");
+						log("Trading over our Pure Essence");
 					}
 					smallSleep();
 				}
@@ -340,6 +367,25 @@ public class Script extends AbstractScript implements MessageListener {
 		return false;
 	}
 	
+	private boolean shouldDumpInventory() {
+		
+		if (this.getInventory().get("Pure essence") != null) {
+			if (this.getInventory().get("Pure essence").isNoted()) {
+				return true;
+			}
+		}
+		
+		int ess = this.getInventory().count("Pure essence");
+		int RoD = this.getInventory().count("Ring of dueling(8)");
+		int Bind = this.getInventory().count("Binding necklace");
+		
+		if (ess+RoD+Bind == (28 - this.getInventory().emptySlotCount())) {
+			return false;
+		}
+		
+		return true;
+	}
+	
 	private void handleBanking() {
 		if (!getBank().isOpen()) {
 			if (getBank().openClosest()) {
@@ -354,13 +400,24 @@ public class Script extends AbstractScript implements MessageListener {
 				getBank().setWithdrawMode(BankMode.ITEM);
 				smallSleep();
 			}
-			if (!getInventory().isEmpty()) {
+			if (shouldDumpInventory()) {
 				getBank().depositAllItems();
 				smallSleep();
 			}
+			if (Config.MULE_BINDINGS) {
+				if (!this.getInventory().contains("Binding necklace")) {
+					getBank().withdraw("Binding necklace", 1);
+					smallSleep();
+				}
+			}
+			if (Config.RING_OF_DUELING) {
+				if (!getEquipment().contains(ring -> ring.getName().contains("dueling"))) {
+					getBank().withdraw("Ring of dueling(8)", 1);
+				}
+			}
 			getBank().withdraw("Pure essence", Config.ESSENCE_TO_WITHDRAW);
-			//smallSleep();
-			//getBank().close();
+			smallSleep();
+			getBank().close();
 			smallSleep();
 		}
 	}

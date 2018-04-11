@@ -35,5 +35,10 @@ public class Config {
 	 * Will mule and offer Binding necklaces to master when they are out.
 	 */
 	public static final boolean MULE_BINDINGS = true;
+	
+	/**
+	 * Will use Rings of Dueling to bank and teleport back to altar.
+	 */
+	public static final boolean RING_OF_DUELING = true;
 
 }
