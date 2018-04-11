@@ -366,6 +366,10 @@ public class Script extends AbstractScript implements MessageListener {
 	public void onTradeMessage(Message msg) {
 		//trade master
 		log("onTradeMessage trading offer");
+		if (!msg.getMessage().contains(Local.lavaBoss)) {
+			log("Got a trade from... somebody else?");
+			return;
+		}
 		Player target = getPlayers().closest(Local.lavaBoss);
 		if (target == null) {
 			log("Attempting to trade a nulled master! We're lost! Error #404: "+Misc.getTimeStamp());
