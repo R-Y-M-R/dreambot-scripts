@@ -26,7 +26,7 @@ import tools.Misc;
  * @author Vlad https://dreambot.org/forums/index.php/user/20-vlad/
  */
 
-@ScriptManifest(name = "Lava Runner", author = "A q p", description = "[DEV] Lava Runner\nNow with better pathing, faster trading.", version = 1.1, category = Category.RUNECRAFTING)
+@ScriptManifest(name = "Lava Runner", author = "A q p", description = "[DEV] Lava Runner\nNow with better pathing, faster trading, and responding to trades.", version = 1.2, category = Category.RUNECRAFTING)
 public class Script extends AbstractScript implements MessageListener {
 	
 	//Variables
@@ -305,8 +305,9 @@ public class Script extends AbstractScript implements MessageListener {
 	
 	public void handleBanking() {
 		if (!getBank().isOpen()) {
-			getBank().openClosest();
-			medSleep();
+			if (getBank().openClosest()) {
+				smallSleep();
+			}
 		} else { //bank is open
 			if (!getBank().placeHoldersEnabled()) {
 				getBank().togglePlaceholders(true);
@@ -320,11 +321,10 @@ public class Script extends AbstractScript implements MessageListener {
 				getBank().depositAllItems();
 				smallSleep();
 			}
-			smallSleep();
 			getBank().withdraw("Pure essence", Config.ESSENCE_TO_WITHDRAW);
 			//smallSleep();
 			//getBank().close();
-			longSleep();
+			smallSleep();
 		}
 	}
 	
@@ -404,10 +404,6 @@ public class Script extends AbstractScript implements MessageListener {
 	public void onTradeMessage(Message msg) {
 		//trade master
 		log("onTradeMessage trading offer");
-		if (!msg.getMessage().contains(Local.lavaBoss)) {
-			log("Got a trade from... somebody else?");
-			return;
-		}
 		Player target = getPlayers().closest(Local.lavaBoss);
 		if (target == null) {
 			log("Attempting to trade a nulled master! We're lost! Error #404: "+Misc.getTimeStamp());
